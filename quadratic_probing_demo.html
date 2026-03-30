@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hash Table — Quadratic Probing</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1a1a1a; padding: 24px; }
+h2 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+.sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+.controls { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+input[type=number] {
+  width: 90px; padding: 7px 10px; font-size: 14px;
+  border: 1px solid #d0d0d0; border-radius: 8px;
+  outline: none; color: #1a1a1a; background: #fff;
+}
+input[type=number]:focus { border-color: #378ADD; }
+button {
+  padding: 7px 16px; font-size: 14px;
+  border: 1px solid #d0d0d0; border-radius: 8px;
+  background: #fff; color: #1a1a1a; cursor: pointer;
+}
+button:hover { background: #f5f5f5; }
+button.danger { border-color: #f09595; color: #a32d2d; }
+button.danger:hover { background: #fcebeb; }
+.hint { font-size: 13px; color: #888; }
+.msg {
+  font-size: 13px; min-height: 20px; margin-bottom: 16px;
+  padding: 8px 12px; border-radius: 8px; display: none; line-height: 1.6;
+}
+.msg.show { display: block; }
+.msg.ok  { background: #eaf3de; color: #27500a; }
+.msg.col { background: #faeeda; color: #633806; }
+.msg.err { background: #fcebeb; color: #a32d2d; }
+.trow { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+.cell {
+  width: 52px; height: 54px; flex-shrink: 0;
+  border: 1px solid #d0d0d0; border-radius: 8px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: #fff;
+}
+.cell.empty { background: #fafafa; }
+.cell.occ   { background: #e6f1fb; border-color: #85b7eb; }
+.cell.init  { background: #eeedfe; border-color: #afa9ec; }
+.cell.probe { background: #faeeda; border-color: #ef9f27; }
+.cell.new   { background: #eaf3de; border-color: #97c459; }
+.cidx { font-size: 11px; color: #aaa; }
+.cval { font-size: 14px; font-weight: 500; color: #1a1a1a; }
+.cell.occ   .cval { color: #0c447c; }
+.cell.init  .cval { color: #3c3489; }
+.cell.probe .cval { color: #633806; }
+.cell.new   .cval { color: #27500a; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+.leg { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #888; }
+.legbox { width: 12px; height: 12px; border-radius: 3px; border: 1px solid; flex-shrink: 0; }
+.slog { margin-top: 16px; }
+.sitem {
+  font-size: 12px; color: #666; padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0; line-height: 1.5;
+}
+.sitem:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<h2>Hash Table — Quadratic Probing</h2>
+<p class="sub">h(k) = k mod 13 &nbsp;|&nbsp; 충돌 시 +1², +2², +3²... 순으로 탐색</p>
+
+<div class="controls">
+  <input type="number" id="kin" placeholder="키 입력" min="0" max="9999" />
+  <button id="ins-btn">삽입</button>
+  <button class="danger" id="rst-btn">초기화</button>
+</div>
+
+<div class="msg" id="msg"></div>
+<div class="trow" id="tview"></div>
+
+<div class="legend">
+  <div class="leg"><div class="legbox" style="background:#eeedfe;border-color:#afa9ec;"></div>최초 해시 위치</div>
+  <div class="leg"><div class="legbox" style="background:#faeeda;border-color:#ef9f27;"></div>probing 탐색 중</div>
+  <div class="leg"><div class="legbox" style="background:#eaf3de;border-color:#97c459;"></div>최종 삽입</div>
+  <div class="leg"><div class="legbox" style="background:#e6f1fb;border-color:#85b7eb;"></div>기존 데이터</div>
+</div>
+
+<div class="slog" id="slog"></div>
+
+<script>
+(function(){
+  var M = 13;
+  var tbl = new Array(M).fill(null);
+  var hl = {};
+
+  function hash(k){ return k % M; }
+
+  function render(){
+    var tv = document.getElementById('tview');
+    tv.innerHTML = '';
+    for(var i = 0; i < M; i++){
+      var cell = document.createElement('div');
+      var cls = 'cell ';
+      if(hl[i] === 'init')       cls += 'init';
+      else if(hl[i] === 'probe') cls += 'probe';
+      else if(hl[i] === 'new')   cls += 'new';
+      else if(tbl[i] !== null)   cls += 'occ';
+      else                       cls += 'empty';
+      cell.className = cls;
+      var idxEl = document.createElement('div');
+      idxEl.className = 'cidx';
+      idxEl.textContent = i;
+      var valEl = document.createElement('div');
+      valEl.className = 'cval';
+      valEl.textContent = tbl[i] !== null ? tbl[i] : '';
+      cell.appendChild(idxEl);
+      cell.appendChild(valEl);
+      tv.appendChild(cell);
+    }
+  }
+
+  function insert(){
+    var raw = document.getElementById('kin').value;
+    if(raw === '') return;
+    var k = parseInt(raw);
+    if(isNaN(k) || k < 0) return;
+
+    var initIdx = hash(k);
+    hl = {};
+    var steps = [];
+    var inserted = false;
+
+    for(var j = 0; j < M; j++){
+      var idx = (initIdx + j*j) % M;
+      if(j === 0){
+        hl[idx] = 'init';
+        steps.push('h(' + k + ') = ' + k + ' mod ' + M + ' = ' + initIdx + ' → 인덱스 ' + idx + ' 확인');
+      } else {
+        hl[idx] = (hl[idx] === 'new') ? 'new' : 'probe';
+        var prevIdx = (initIdx + (j-1)*(j-1)) % M;
+        steps.push('인덱스 ' + prevIdx + ' 충돌 → +' + j + '² → 인덱스 ' + idx + ' 확인');
+      }
+      if(tbl[idx] === null){
+        tbl[idx] = k;
+        hl[idx] = 'new';
+        steps.push('인덱스 ' + idx + ' 비어있음 → 삽입 완료!');
+        inserted = true;
+        var msg = document.getElementById('msg');
+        if(j === 0){
+          msg.className = 'msg show ok';
+          msg.textContent = 'h(' + k + ') = ' + initIdx + ' → 충돌 없이 바로 삽입.';
+        } else {
+          msg.className = 'msg show col';
+          msg.textContent = 'h(' + k + ') = ' + initIdx + ' 충돌 → ' + j + '번 probing(+' + j + '²) 후 인덱스 ' + idx + '에 삽입.';
+        }
+        break;
+      }
+    }
+
+    if(!inserted){
+      var msg = document.getElementById('msg');
+      msg.className = 'msg show err';
+      msg.textContent = '삽입 실패. 테이블이 꽉 찼거나 탐색 가능한 위치를 모두 시도했어.';
+    }
+
+    var log = document.getElementById('slog');
+    log.innerHTML = steps.map(function(s){ return '<div class="sitem">' + s + '</div>'; }).join('');
+    render();
+    document.getElementById('kin').value = '';
+    document.getElementById('kin').focus();
+  }
+
+  function reset(){
+    tbl = new Array(M).fill(null);
+    hl = {};
+    document.getElementById('msg').className = 'msg';
+    document.getElementById('slog').innerHTML = '';
+    render();
+  }
+
+  document.getElementById('ins-btn').addEventListener('click', insert);
+  document.getElementById('rst-btn').addEventListener('click', reset);
+  document.getElementById('kin').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') insert();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
