@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hash Table — Chaining</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1a1a1a; padding: 24px; }
+h2 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+.sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+.controls { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+input[type=number] {
+  width: 90px; padding: 7px 10px; font-size: 14px;
+  border: 1px solid #d0d0d0; border-radius: 8px;
+  outline: none; color: #1a1a1a; background: #fff;
+}
+input[type=number]:focus { border-color: #378ADD; }
+button {
+  padding: 7px 16px; font-size: 14px;
+  border: 1px solid #d0d0d0; border-radius: 8px;
+  background: #fff; color: #1a1a1a; cursor: pointer;
+}
+button:hover { background: #f5f5f5; }
+button.danger { border-color: #f09595; color: #a32d2d; }
+button.danger:hover { background: #fcebeb; }
+.hint { font-size: 13px; color: #888; }
+.msg {
+  font-size: 13px; min-height: 20px; margin-bottom: 16px;
+  padding: 8px 12px; border-radius: 8px; display: none; line-height: 1.6;
+}
+.msg.show { display: block; }
+.msg.ok  { background: #eaf3de; color: #27500a; }
+.msg.col { background: #faeeda; color: #633806; }
+.table-area { display: flex; flex-direction: column; gap: 0; }
+.slot { display: flex; align-items: center; height: 48px; }
+.slot-idx { width: 28px; font-size: 12px; color: #aaa; text-align: right; padding-right: 10px; flex-shrink: 0; }
+.slot-cell {
+  width: 48px; height: 38px;
+  border: 1px solid #d0d0d0; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: #fafafa; flex-shrink: 0;
+}
+.slot-cell.has { background: #e6f1fb; border-color: #85b7eb; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #378ADD; }
+.empty-label { font-size: 13px; color: #ccc; }
+.chain-row { display: flex; align-items: center; }
+.arrow {
+  width: 20px; height: 2px; background: #ccc;
+  position: relative; flex-shrink: 0;
+}
+.arrow::after {
+  content: '';
+  position: absolute; right: -5px; top: -4px;
+  border: 5px solid transparent;
+  border-left-color: #ccc;
+}
+.node {
+  height: 38px; padding: 0 12px;
+  border: 1px solid #85b7eb; border-radius: 8px;
+  background: #e6f1fb;
+  display: flex; align-items: center;
+  font-size: 13px; color: #0c447c;
+  flex-shrink: 0; white-space: nowrap;
+}
+.node.new { background: #eaf3de; border-color: #97c459; color: #27500a; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+.leg { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #888; }
+.legbox { width: 12px; height: 12px; border-radius: 3px; border: 1px solid; flex-shrink: 0; }
+.slog { margin-top: 16px; }
+.sitem {
+  font-size: 12px; color: #666; padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0; line-height: 1.5;
+}
+.sitem:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<h2>Hash Table — Chaining</h2>
+<p class="sub">h(k) = k mod 13 &nbsp;|&nbsp; 충돌 시 linked list에 이어 붙임</p>
+
+<div class="controls">
+  <input type="number" id="kin" placeholder="키 입력" min="0" max="9999" />
+  <button id="ins-btn">삽입</button>
+  <button class="danger" id="rst-btn">초기화</button>
+</div>
+
+<div class="msg" id="msg"></div>
+<div class="table-area" id="tview"></div>
+
+<div class="legend">
+  <div class="leg"><div class="legbox" style="background:#e6f1fb;border-color:#85b7eb;"></div>기존 데이터</div>
+  <div class="leg"><div class="legbox" style="background:#eaf3de;border-color:#97c459;"></div>새로 삽입된 노드</div>
+</div>
+
+<div class="slog" id="slog"></div>
+
+<script>
+(function(){
+  var M = 13;
+  var table = Array.from({length: M}, function(){ return []; });
+  var lastKey = null;
+  var lastIdx = -1;
+
+  function hash(k){ return k % M; }
+
+  function render(){
+    var tv = document.getElementById('tview');
+    tv.innerHTML = '';
+    for(var i = 0; i < M; i++){
+      var slot = document.createElement('div');
+      slot.className = 'slot';
+
+      var idxEl = document.createElement('div');
+      idxEl.className = 'slot-idx';
+      idxEl.textContent = i;
+
+      var cell = document.createElement('div');
+      cell.className = 'slot-cell' + (table[i].length > 0 ? ' has' : '');
+
+      if(table[i].length === 0){
+        var empty = document.createElement('span');
+        empty.className = 'empty-label';
+        empty.textContent = '∅';
+        cell.appendChild(empty);
+      } else {
+        var dot = document.createElement('div');
+        dot.className = 'dot';
+        cell.appendChild(dot);
+      }
+
+      var chainRow = document.createElement('div');
+      chainRow.className = 'chain-row';
+
+      for(var ni = 0; ni < table[i].length; ni++){
+        var val = table[i][ni];
+        var arr = document.createElement('div');
+        arr.className = 'arrow';
+        var node = document.createElement('div');
+        var isNew = (val === lastKey && i === lastIdx && ni === table[i].length - 1);
+        node.className = 'node' + (isNew ? ' new' : '');
+        node.textContent = val;
+        chainRow.appendChild(arr);
+        chainRow.appendChild(node);
+      }
+
+      slot.appendChild(idxEl);
+      slot.appendChild(cell);
+      slot.appendChild(chainRow);
+      tv.appendChild(slot);
+    }
+  }
+
+  function insert(){
+    var raw = document.getElementById('kin').value;
+    if(raw === '') return;
+    var k = parseInt(raw);
+    if(isNaN(k) || k < 0) return;
+
+    var idx = hash(k);
+    var isCollision = table[idx].length > 0;
+    table[idx].push(k);
+    lastKey = k;
+    lastIdx = idx;
+
+    var steps = [];
+    steps.push('h(' + k + ') = ' + k + ' mod ' + M + ' = ' + idx + ' → 인덱스 ' + idx + ' 확인');
+    if(isCollision){
+      steps.push('인덱스 ' + idx + ' 충돌 → linked list 끝에 추가');
+    } else {
+      steps.push('인덱스 ' + idx + ' 비어있음 → 바로 삽입');
+    }
+
+    var msg = document.getElementById('msg');
+    if(isCollision){
+      msg.className = 'msg show col';
+      msg.textContent = '충돌! h(' + k + ') = ' + idx + ' → 이미 ' + (table[idx].length - 1) + '개 존재. linked list 끝에 추가했어.';
+    } else {
+      msg.className = 'msg show ok';
+      msg.textContent = 'h(' + k + ') = ' + idx + ' → 빈 슬롯에 바로 삽입.';
+    }
+
+    var log = document.getElementById('slog');
+    log.innerHTML = steps.map(function(s){ return '<div class="sitem">' + s + '</div>'; }).join('');
+
+    render();
+    document.getElementById('kin').value = '';
+    document.getElementById('kin').focus();
+  }
+
+  function reset(){
+    table = Array.from({length: M}, function(){ return []; });
+    lastKey = null;
+    lastIdx = -1;
+    document.getElementById('msg').className = 'msg';
+    document.getElementById('slog').innerHTML = '';
+    render();
+  }
+
+  document.getElementById('ins-btn').addEventListener('click', insert);
+  document.getElementById('rst-btn').addEventListener('click', reset);
+  document.getElementById('kin').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') insert();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
