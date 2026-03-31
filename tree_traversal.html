@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Tree — Traversal</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1a1a1a; padding: 24px; }
+h2 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+.sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.btn {
+  padding: 7px 16px; font-size: 13px;
+  border: 1px solid #d0d0d0; border-radius: 8px;
+  background: #fff; color: #1a1a1a; cursor: pointer;
+}
+.btn:hover { background: #f5f5f5; }
+.btn.active { background: #eeedfe; border-color: #afa9ec; color: #3c3489; font-weight: 500; }
+.info { font-size: 13px; color: #888; margin-bottom: 14px; min-height: 18px; }
+.result {
+  font-size: 15px; font-weight: 500; letter-spacing: 1px;
+  color: #1a1a1a; margin-top: 12px; min-height: 24px;
+  padding: 10px 14px; background: #f7f7f5; border-radius: 8px;
+}
+.result span { color: #378ADD; }
+svg { width: 100%; max-width: 460px; overflow: visible; }
+</style>
+</head>
+<body>
+
+<h2>Binary Tree — Traversal</h2>
+<p class="sub">방법을 선택하면 방문 순서가 표시돼</p>
+
+<div class="btns">
+  <button class="btn active" onclick="setMode('inorder',this)">In-order (LCR)</button>
+  <button class="btn" onclick="setMode('preorder',this)">Pre-order (CLR)</button>
+  <button class="btn" onclick="setMode('postorder',this)">Post-order (LRC)</button>
+  <button class="btn" onclick="setMode('level',this)">Level-order</button>
+</div>
+
+<div class="info" id="info">왼쪽 → 루트 → 오른쪽 순서로 방문</div>
+
+<svg id="tree-svg" viewBox="0 0 460 240">
+  <line x1="230" y1="44" x2="130" y2="94" stroke="#d0d0d0" stroke-width="0.5"/>
+  <line x1="230" y1="44" x2="330" y2="94" stroke="#d0d0d0" stroke-width="0.5"/>
+  <line x1="130" y1="114" x2="70" y2="164" stroke="#d0d0d0" stroke-width="0.5"/>
+  <line x1="130" y1="114" x2="190" y2="164" stroke="#d0d0d0" stroke-width="0.5"/>
+  <line x1="330" y1="114" x2="270" y2="164" stroke="#d0d0d0" stroke-width="0.5"/>
+  <line x1="330" y1="114" x2="390" y2="164" stroke="#d0d0d0" stroke-width="0.5"/>
+  <line x1="70" y1="184" x2="40" y2="220" stroke="#d0d0d0" stroke-width="0.5"/>
+  <line x1="70" y1="184" x2="100" y2="220" stroke="#d0d0d0" stroke-width="0.5"/>
+  <line x1="270" y1="184" x2="250" y2="220" stroke="#d0d0d0" stroke-width="0.5"/>
+
+  <g id="n-A"><circle cx="230" cy="30" r="22" stroke-width="0.5"/><text x="230" y="30" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">A</text></g>
+  <g id="n-B"><circle cx="130" cy="100" r="22" stroke-width="0.5"/><text x="130" y="100" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">B</text></g>
+  <g id="n-C"><circle cx="330" cy="100" r="22" stroke-width="0.5"/><text x="330" y="100" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">C</text></g>
+  <g id="n-D"><circle cx="70" cy="170" r="22" stroke-width="0.5"/><text x="70" y="170" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">D</text></g>
+  <g id="n-E"><circle cx="190" cy="170" r="22" stroke-width="0.5"/><text x="190" y="170" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">E</text></g>
+  <g id="n-F"><circle cx="270" cy="170" r="22" stroke-width="0.5"/><text x="270" y="170" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">F</text></g>
+  <g id="n-G"><circle cx="390" cy="170" r="22" stroke-width="0.5"/><text x="390" y="170" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">G</text></g>
+  <g id="n-H"><circle cx="40" cy="226" r="22" stroke-width="0.5"/><text x="40" y="226" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">H</text></g>
+  <g id="n-I"><circle cx="100" cy="226" r="22" stroke-width="0.5"/><text x="100" y="226" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">I</text></g>
+  <g id="n-J"><circle cx="250" cy="226" r="22" stroke-width="0.5"/><text x="250" y="226" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">J</text></g>
+
+  <text id="o-A" x="230" y="4" text-anchor="middle" font-size="12" font-weight="500" fill="#378ADD"></text>
+  <text id="o-B" x="130" y="74" text-anchor="middle" font-size="12" font-weight="500" fill="#378ADD"></text>
+  <text id="o-C" x="330" y="74" text-anchor="middle" font-size="12" font-weight="500" fill="#378ADD"></text>
+  <text id="o-D" x="70" y="144" text-anchor="middle" font-size="12" font-weight="500" fill="#378ADD"></text>
+  <text id="o-E" x="190" y="144" text-anchor="middle" font-size="12" font-weight="500" fill="#378ADD"></text>
+  <text id="o-F" x="270" y="144" text-anchor="middle" font-size="12" font-weight="500" fill="#378ADD"></text>
+  <text id="o-G" x="390" y="144" text-anchor="middle" font-size="12" font-weight="500" fill="#378ADD"></text>
+  <text id="o-H" x="40" y="200" text-anchor="middle" font-size="12" font-weight="500" fill="#378ADD"></text>
+  <text id="o-I" x="100" y="200" text-anchor="middle" font-size="12" font-weight="500" fill="#378ADD"></text>
+  <text id="o-J" x="250" y="200" text-anchor="middle" font-size="12" font-weight="500" fill="#378ADD"></text>
+</svg>
+
+<div class="result" id="result"></div>
+
+<script>
+(function(){
+  var modes = {
+    inorder:   { info: '왼쪽 → 루트 → 오른쪽 (LCR)', order: {H:1,D:2,I:3,B:4,E:5,A:6,J:7,F:8,C:9,G:10}, result: 'H → D → I → B → E → A → J → F → C → G' },
+    preorder:  { info: '루트 → 왼쪽 → 오른쪽 (CLR)', order: {A:1,B:2,D:3,H:4,I:5,E:6,C:7,F:8,J:9,G:10}, result: 'A → B → D → H → I → E → C → F → J → G' },
+    postorder: { info: '왼쪽 → 오른쪽 → 루트 (LRC)', order: {H:1,I:2,D:3,E:4,B:5,J:6,F:7,G:8,C:9,A:10}, result: 'H → I → D → E → B → J → F → G → C → A' },
+    level:     { info: '레벨 순서 — 위에서 아래, 왼쪽에서 오른쪽', order: {A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,I:9,J:10}, result: 'A → B → C → D → E → F → G → H → I → J' }
+  };
+
+  var nodes = ['A','B','C','D','E','F','G','H','I','J'];
+
+  function render(mode) {
+    var m = modes[mode];
+    document.getElementById('info').textContent = m.info;
+    nodes.forEach(function(n) {
+      var circle = document.querySelector('#n-' + n + ' circle');
+      circle.setAttribute('fill', '#e6f1fb');
+      circle.setAttribute('stroke', '#85b7eb');
+      document.querySelector('#n-' + n + ' text').setAttribute('fill', '#0c447c');
+      document.getElementById('o-' + n).textContent = m.order[n];
+    });
+    var parts = m.result.split(' → ');
+    document.getElementById('result').innerHTML = '방문 순서: ' + parts.map(function(p, i){
+      return '<span>' + (i+1) + '</span> ' + p;
+    }).join('  ');
+  }
+
+  window.setMode = function(mode, el) {
+    document.querySelectorAll('.btn').forEach(function(b){ b.classList.remove('active'); });
+    el.classList.add('active');
+    render(mode);
+  };
+
+  render('inorder');
+})();
+</script>
+</body>
+</html>
