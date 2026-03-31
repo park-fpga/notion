@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz: Week 05 — Hash & Tree</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f7f5; color: #1a1a1a; padding: 24px; max-width: 860px; margin: 0 auto; }
+h1 { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+.top-sub { font-size: 13px; color: #888; margin-bottom: 28px; }
+
+/* Section */
+.section { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+.section-title { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
+.section-sub { font-size: 13px; color: #888; margin-bottom: 18px; line-height: 1.6; }
+
+/* Hash table Q1 */
+.q1-layout { display: flex; gap: 24px; flex-wrap: wrap; }
+.key-list { flex: 1; min-width: 180px; }
+.key-list-title { font-size: 12px; color: #888; margin-bottom: 8px; }
+.key-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.key-pill { padding: 4px 10px; background: #eeedfe; border: 1px solid #afa9ec; border-radius: 20px; font-size: 13px; color: #3c3489; cursor: pointer; user-select: none; }
+.key-pill.used { background: #f0f0f0; border-color: #d0d0d0; color: #aaa; text-decoration: line-through; cursor: default; }
+.key-pill.selected { background: #3c3489; color: #fff; border-color: #3c3489; }
+.probing-tables { display: flex; gap: 16px; flex-wrap: wrap; }
+.probe-wrap { flex: 1; min-width: 120px; }
+.probe-title { font-size: 12px; color: #888; margin-bottom: 6px; }
+.hash-table { border-collapse: collapse; width: 100%; }
+.hash-table td { border: 1px solid #e0e0e0; height: 36px; font-size: 13px; }
+.hash-table td.idx { width: 36px; text-align: center; color: #aaa; font-size: 12px; background: #fafafa; }
+.hash-table td.cell { padding: 0 8px; min-width: 80px; cursor: pointer; }
+.hash-table td.cell:hover { background: #f5f5f5; }
+.hash-table td.cell.filled { background: #e6f1fb; color: #0c447c; font-weight: 500; }
+.hash-table td.cell.correct { background: #eaf3de; color: #27500a; }
+.hash-table td.cell.wrong { background: #fcebeb; color: #a32d2d; }
+.hash-table td.cell.hint-cell { background: #faeeda; color: #633806; font-size: 11px; }
+
+/* OX */
+.ox-list { display: flex; flex-direction: column; gap: 12px; }
+.ox-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; }
+.ox-num { font-size: 12px; color: #aaa; min-width: 20px; padding-top: 2px; }
+.ox-q { flex: 1; font-size: 14px; line-height: 1.6; }
+.ox-btns { display: flex; gap: 6px; flex-shrink: 0; }
+.ox-btn { width: 38px; height: 32px; border-radius: 6px; border: 1px solid #d0d0d0; background: #fff; font-size: 14px; font-weight: 500; cursor: pointer; }
+.ox-btn:hover { background: #f0f0f0; }
+.ox-btn.sel-O { background: #e6f1fb; border-color: #85b7eb; color: #0c447c; }
+.ox-btn.sel-X { background: #fcebeb; border-color: #f09595; color: #a32d2d; }
+.ox-btn.correct { background: #eaf3de; border-color: #97c459; color: #27500a; }
+.ox-btn.wrong   { background: #fcebeb; border-color: #f09595; color: #a32d2d; }
+.ox-exp { font-size: 12px; color: #888; margin-top: 6px; display: none; line-height: 1.5; }
+.ox-exp.show { display: block; }
+
+/* Q3 */
+.q3-item { margin-bottom: 20px; }
+.q3-label { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+.traversal-input { width: 100%; padding: 8px 12px; font-size: 14px; border: 1px solid #d0d0d0; border-radius: 8px; outline: none; background: #fff; color: #1a1a1a; }
+.traversal-input:focus { border-color: #378ADD; }
+.traversal-input.correct { border-color: #97c459; background: #eaf3de; color: #27500a; }
+.traversal-input.wrong   { border-color: #f09595; background: #fcebeb; color: #a32d2d; }
+.num-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.num-opt { padding: 6px 14px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff; font-size: 13px; cursor: pointer; }
+.num-opt:hover { background: #f0f0f0; }
+.num-opt.sel    { background: #eeedfe; border-color: #afa9ec; color: #3c3489; }
+.num-opt.correct { background: #eaf3de; border-color: #97c459; color: #27500a; }
+.num-opt.wrong   { background: #fcebeb; border-color: #f09595; color: #a32d2d; }
+
+/* Tree SVG */
+.tree-svg-wrap { margin-bottom: 12px; }
+
+/* Buttons */
+.check-btn { margin-top: 14px; padding: 8px 20px; font-size: 14px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff; color: #1a1a1a; cursor: pointer; }
+.check-btn:hover { background: #f5f5f5; }
+.reset-btn { margin-top: 8px; margin-left: 8px; padding: 8px 16px; font-size: 14px; border: 1px solid #f09595; border-radius: 8px; background: #fff; color: #a32d2d; cursor: pointer; }
+.reset-btn:hover { background: #fcebeb; }
+.result-msg { margin-top: 10px; font-size: 13px; padding: 8px 12px; border-radius: 8px; display: none; }
+.result-msg.show { display: block; }
+.result-msg.ok  { background: #eaf3de; color: #27500a; }
+.result-msg.err { background: #fcebeb; color: #a32d2d; }
+.hint-row { font-size: 12px; color: #888; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<h1>Quiz: Week 05 — Hash & Tree</h1>
+<p class="top-sub">직접 풀고 채점해봐</p>
+
+<!-- ===== QUIZ 1 ===== -->
+<div class="section">
+  <div class="section-title">Quiz 1 — Hash Table 채우기</div>
+  <div class="section-sub">
+    h(x) = (x의 글자 수) mod 10 &nbsp;|&nbsp; Size = 10<br>
+    Key 순서: I, enjoy, data, structures, and, algorithms, course, it, is, fun<br>
+    키를 클릭해서 선택한 뒤, 넣을 인덱스 칸을 클릭해 삽입해봐.
+  </div>
+
+  <div class="q1-layout">
+    <div class="key-list">
+      <div class="key-list-title">키 목록</div>
+      <div class="key-pills" id="key-pills-L">
+        <span class="key-pill" onclick="selectKey(this,'L')">I</span>
+        <span class="key-pill" onclick="selectKey(this,'L')">enjoy</span>
+        <span class="key-pill" onclick="selectKey(this,'L')">data</span>
+        <span class="key-pill" onclick="selectKey(this,'L')">structures</span>
+        <span class="key-pill" onclick="selectKey(this,'L')">and</span>
+        <span class="key-pill" onclick="selectKey(this,'L')">algorithms</span>
+        <span class="key-pill" onclick="selectKey(this,'L')">course</span>
+        <span class="key-pill" onclick="selectKey(this,'L')">it</span>
+        <span class="key-pill" onclick="selectKey(this,'L')">is</span>
+        <span class="key-pill" onclick="selectKey(this,'L')">fun</span>
+      </div>
+      <div class="hint-row" id="hint-L">키를 선택하면 h(x) 힌트가 표시돼</div>
+    </div>
+
+    <div class="probing-tables">
+      <div class="probe-wrap">
+        <div class="probe-title">(1) Linear Probing</div>
+        <table class="hash-table" id="table-L">
+          <tr><td class="idx">0</td><td class="cell" onclick="placeKey(0,'L')"></td></tr>
+          <tr><td class="idx">1</td><td class="cell" onclick="placeKey(1,'L')"></td></tr>
+          <tr><td class="idx">2</td><td class="cell" onclick="placeKey(2,'L')"></td></tr>
+          <tr><td class="idx">3</td><td class="cell" onclick="placeKey(3,'L')"></td></tr>
+          <tr><td class="idx">4</td><td class="cell" onclick="placeKey(4,'L')"></td></tr>
+          <tr><td class="idx">5</td><td class="cell" onclick="placeKey(5,'L')"></td></tr>
+          <tr><td class="idx">6</td><td class="cell" onclick="placeKey(6,'L')"></td></tr>
+          <tr><td class="idx">7</td><td class="cell" onclick="placeKey(7,'L')"></td></tr>
+          <tr><td class="idx">8</td><td class="cell" onclick="placeKey(8,'L')"></td></tr>
+          <tr><td class="idx">9</td><td class="cell" onclick="placeKey(9,'L')"></td></tr>
+        </table>
+      </div>
+      <div class="probe-wrap">
+        <div class="probe-title">(2) Quadratic Probing</div>
+        <table class="hash-table" id="table-Q">
+          <tr><td class="idx">0</td><td class="cell" onclick="placeKey(0,'Q')"></td></tr>
+          <tr><td class="idx">1</td><td class="cell" onclick="placeKey(1,'Q')"></td></tr>
+          <tr><td class="idx">2</td><td class="cell" onclick="placeKey(2,'Q')"></td></tr>
+          <tr><td class="idx">3</td><td class="cell" onclick="placeKey(3,'Q')"></td></tr>
+          <tr><td class="idx">4</td><td class="cell" onclick="placeKey(4,'Q')"></td></tr>
+          <tr><td class="idx">5</td><td class="cell" onclick="placeKey(5,'Q')"></td></tr>
+          <tr><td class="idx">6</td><td class="cell" onclick="placeKey(6,'Q')"></td></tr>
+          <tr><td class="idx">7</td><td class="cell" onclick="placeKey(7,'Q')"></td></tr>
+          <tr><td class="idx">8</td><td class="cell" onclick="placeKey(8,'Q')"></td></tr>
+          <tr><td class="idx">9</td><td class="cell" onclick="placeKey(9,'Q')"></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <button class="check-btn" onclick="checkQ1()">채점</button>
+  <button class="reset-btn" onclick="resetQ1()">초기화</button>
+  <div class="result-msg" id="q1-msg"></div>
+</div>
+
+<!-- ===== QUIZ 2 ===== -->
+<div class="section">
+  <div class="section-title">Quiz 2 — O / X</div>
+  <div class="section-sub">각 문항이 맞으면 O, 틀리면 X를 선택해봐.</div>
+  <div class="ox-list">
+    <div class="ox-item" id="ox1">
+      <div class="ox-num">1</div>
+      <div style="flex:1">
+        <div class="ox-q">100개의 공간을 가지는 closed addressing 기반의 hash table에서, load factor가 1%일 때와 100%일 때 아이템에 대한 접근 연산 시간이 동일할 수도 있다.</div>
+        <div class="ox-exp" id="exp1">chaining에서 모든 키가 같은 버킷으로 몰리면, load factor와 무관하게 O(n) 탐색이 발생할 수 있어. 즉 1%여도 한 버킷에 몰리면 100%일 때와 같은 시간이 걸릴 수 있어.</div>
+      </div>
+      <div class="ox-btns">
+        <button class="ox-btn" onclick="selectOX(1,'O')">O</button>
+        <button class="ox-btn" onclick="selectOX(1,'X')">X</button>
+      </div>
+    </div>
+    <div class="ox-item" id="ox2">
+      <div class="ox-num">2</div>
+      <div style="flex:1">
+        <div class="ox-q">어떤 binary tree가 left-complete하면 perfect하기도 하다.</div>
+        <div class="ox-exp" id="exp2">complete는 마지막 레벨이 왼쪽부터 채워지기만 하면 돼. perfect는 모든 레벨이 꽉 차야 해. complete가 perfect를 포함하지 않아.</div>
+      </div>
+      <div class="ox-btns">
+        <button class="ox-btn" onclick="selectOX(2,'O')">O</button>
+        <button class="ox-btn" onclick="selectOX(2,'X')">X</button>
+      </div>
+    </div>
+    <div class="ox-item" id="ox3">
+      <div class="ox-num">3</div>
+      <div style="flex:1">
+        <div class="ox-q">Tree에서 키 값의 중복(서로 같은 값을 갖는 2개 이상의 노드)은 허용되지 않는다.</div>
+        <div class="ox-exp" id="exp3">일반 Tree는 키 중복을 금지하는 규칙이 없어. BST 같은 특수한 트리만 중복을 제한해.</div>
+      </div>
+      <div class="ox-btns">
+        <button class="ox-btn" onclick="selectOX(3,'O')">O</button>
+        <button class="ox-btn" onclick="selectOX(3,'X')">X</button>
+      </div>
+    </div>
+    <div class="ox-item" id="ox4">
+      <div class="ox-num">4</div>
+      <div style="flex:1">
+        <div class="ox-q">Binary tree에서 키 값의 중복(서로 같은 값을 갖는 2개 이상의 노드)은 허용되지 않는다.</div>
+        <div class="ox-exp" id="exp4">Binary tree도 일반 트리와 마찬가지로 중복을 금지하는 규칙이 없어. Binary Search Tree(BST)는 중복을 제한하지만, 일반 binary tree는 아니야.</div>
+      </div>
+      <div class="ox-btns">
+        <button class="ox-btn" onclick="selectOX(4,'O')">O</button>
+        <button class="ox-btn" onclick="selectOX(4,'X')">X</button>
+      </div>
+    </div>
+    <div class="ox-item" id="ox5">
+      <div class="ox-num">5</div>
+      <div style="flex:1">
+        <div class="ox-q">어떤 binary tree에 대해 특정 traversal을 수행하는 순서는 유일하게 결정된다.</div>
+        <div class="ox-exp" id="exp5">트리가 고정되어 있으면 inorder/preorder/postorder/level-order 어떤 방식이든 결과는 항상 하나야.</div>
+      </div>
+      <div class="ox-btns">
+        <button class="ox-btn" onclick="selectOX(5,'O')">O</button>
+        <button class="ox-btn" onclick="selectOX(5,'X')">X</button>
+      </div>
+    </div>
+    <div class="ox-item" id="ox6">
+      <div class="ox-num">6</div>
+      <div style="flex:1">
+        <div class="ox-q">어떤 binary tree에 대해 특정 traversal을 수행한 순서가 주어지면 그 binary tree를 유일하게 정의할 수 있다.</div>
+        <div class="ox-exp" id="exp6">traversal 결과 하나만으로는 트리 구조가 여러 개 가능해. preorder+inorder 혹은 postorder+inorder를 함께 써야 트리를 유일하게 복원할 수 있어.</div>
+      </div>
+      <div class="ox-btns">
+        <button class="ox-btn" onclick="selectOX(6,'O')">O</button>
+        <button class="ox-btn" onclick="selectOX(6,'X')">X</button>
+      </div>
+    </div>
+  </div>
+  <button class="check-btn" onclick="checkQ2()">채점</button>
+  <button class="reset-btn" onclick="resetQ2()">초기화</button>
+  <div class="result-msg" id="q2-msg"></div>
+</div>
+
+<!-- ===== QUIZ 3 ===== -->
+<div class="section">
+  <div class="section-title">Quiz 3 — 순회 & 트리 모양</div>
+  <div class="section-sub">아래 트리를 보고 답해봐. 순회 결과는 공백으로 구분해서 입력해 (예: A B C D)</div>
+
+  <div class="tree-svg-wrap">
+    <svg width="100%" viewBox="0 0 400 220" style="max-width:400px;">
+      <line x1="200" y1="34" x2="120" y2="84" stroke="#d0d0d0" stroke-width="0.5"/>
+      <line x1="200" y1="34" x2="280" y2="84" stroke="#d0d0d0" stroke-width="0.5"/>
+      <line x1="120" y1="104" x2="70" y2="154" stroke="#d0d0d0" stroke-width="0.5"/>
+      <line x1="120" y1="104" x2="170" y2="154" stroke="#d0d0d0" stroke-width="0.5"/>
+      <line x1="280" y1="104" x2="230" y2="154" stroke="#d0d0d0" stroke-width="0.5"/>
+      <line x1="280" y1="104" x2="330" y2="154" stroke="#d0d0d0" stroke-width="0.5"/>
+      <line x1="70" y1="174" x2="45" y2="204" stroke="#d0d0d0" stroke-width="0.5"/>
+      <line x1="70" y1="174" x2="95" y2="204" stroke="#d0d0d0" stroke-width="0.5"/>
+      <line x1="230" y1="174" x2="210" y2="204" stroke="#d0d0d0" stroke-width="0.5"/>
+      <circle cx="200" cy="20" r="16" fill="#eeedfe" stroke="#afa9ec" stroke-width="0.5"/>
+      <text x="200" y="20" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#3c3489">A</text>
+      <circle cx="120" cy="90" r="16" fill="#e6f1fb" stroke="#85b7eb" stroke-width="0.5"/>
+      <text x="120" y="90" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0c447c">B</text>
+      <circle cx="280" cy="90" r="16" fill="#e6f1fb" stroke="#85b7eb" stroke-width="0.5"/>
+      <text x="280" y="90" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0c447c">C</text>
+      <circle cx="70" cy="160" r="16" fill="#f1f0f0" stroke="#d0d0d0" stroke-width="0.5"/>
+      <text x="70" y="160" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#444">D</text>
+      <circle cx="170" cy="160" r="16" fill="#f1f0f0" stroke="#d0d0d0" stroke-width="0.5"/>
+      <text x="170" y="160" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#444">E</text>
+      <circle cx="230" cy="160" r="16" fill="#f1f0f0" stroke="#d0d0d0" stroke-width="0.5"/>
+      <text x="230" y="160" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#444">G</text>
+      <circle cx="330" cy="160" r="16" fill="#f1f0f0" stroke="#d0d0d0" stroke-width="0.5"/>
+      <text x="330" y="160" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#444">H</text>
+      <circle cx="45" cy="210" r="16" fill="#f1f0f0" stroke="#d0d0d0" stroke-width="0.5"/>
+      <text x="45" y="210" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#444">I</text>
+      <circle cx="95" cy="210" r="16" fill="#f1f0f0" stroke="#d0d0d0" stroke-width="0.5"/>
+      <text x="95" y="210" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#444">K</text>
+      <circle cx="210" cy="210" r="16" fill="#f1f0f0" stroke="#d0d0d0" stroke-width="0.5"/>
+      <text x="210" y="210" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#444">J</text>
+    </svg>
+  </div>
+
+  <div class="q3-item">
+    <div class="q3-label">(1) Inorder traversal (LCR)</div>
+    <input class="traversal-input" id="in-inorder" placeholder="예: A B C ..." />
+  </div>
+  <div class="q3-item">
+    <div class="q3-label">(2) Preorder traversal (CLR)</div>
+    <input class="traversal-input" id="in-preorder" placeholder="예: A B C ..." />
+  </div>
+  <div class="q3-item">
+    <div class="q3-label">(3) Postorder traversal (LRC)</div>
+    <input class="traversal-input" id="in-postorder" placeholder="예: A B C ..." />
+  </div>
+  <div class="q3-item">
+    <div class="q3-label">(4) Level-order traversal</div>
+    <input class="traversal-input" id="in-level" placeholder="예: A B C ..." />
+  </div>
+
+  <div class="q3-item" style="margin-top:20px;">
+    <div class="q3-label">(5) 노드 4개일 때 가능한 binary tree 모양의 수는?</div>
+    <div class="num-options" id="q3-bt">
+      <button class="num-opt" onclick="selectNum('q3-bt',this)">1</button>
+      <button class="num-opt" onclick="selectNum('q3-bt',this)">4</button>
+      <button class="num-opt" onclick="selectNum('q3-bt',this)">14</button>
+      <button class="num-opt" onclick="selectNum('q3-bt',this)">16</button>
+    </div>
+  </div>
+  <div class="q3-item">
+    <div class="q3-label">(6) 노드 4개일 때 가능한 left-complete binary tree 모양의 수는?</div>
+    <div class="num-options" id="q3-lc">
+      <button class="num-opt" onclick="selectNum('q3-lc',this)">1</button>
+      <button class="num-opt" onclick="selectNum('q3-lc',this)">2</button>
+      <button class="num-opt" onclick="selectNum('q3-lc',this)">4</button>
+      <button class="num-opt" onclick="selectNum('q3-lc',this)">14</button>
+    </div>
+  </div>
+  <div class="q3-item">
+    <div class="q3-label">(7) 노드 4개일 때 가능한 full binary tree 모양의 수는?</div>
+    <div class="num-options" id="q3-fb">
+      <button class="num-opt" onclick="selectNum('q3-fb',this)">0</button>
+      <button class="num-opt" onclick="selectNum('q3-fb',this)">1</button>
+      <button class="num-opt" onclick="selectNum('q3-fb',this)">3</button>
+      <button class="num-opt" onclick="selectNum('q3-fb',this)">7</button>
+    </div>
+  </div>
+
+  <button class="check-btn" onclick="checkQ3()">채점</button>
+  <button class="reset-btn" onclick="resetQ3()">초기화</button>
+  <div class="result-msg" id="q3-msg"></div>
+</div>
+
+<script>
+(function(){
+
+/* ---- Q1 ---- */
+var keys = ['I','enjoy','data','structures','and','algorithms','course','it','is','fun'];
+var selectedKey = {L:null, Q:null};
+var tables = {L: new Array(10).fill(null), Q: new Array(10).fill(null)};
+var usedKeys = {L: {}, Q: {}};
+
+var ansL = {0:'structures',1:'algorithms',2:'it',3:'and',4:'data',5:'enjoy',6:'course',7:'is',8:'fun',9:'I'};
+var ansQ = {0:'structures',1:'I',2:'it',3:'and',4:'data',5:'enjoy',6:'course',7:'algorithms',9:'is',8:'fun'};
+
+window.selectKey = function(el, mode) {
+  if(el.classList.contains('used')) return;
+  var pills = document.getElementById('key-pills-L').querySelectorAll('.key-pill');
+  pills.forEach(function(p){ p.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedKey[mode] = el.textContent;
+  selectedKey[mode === 'L' ? 'Q' : 'L'] = el.textContent;
+  var len = el.textContent.length;
+  document.getElementById('hint-L').textContent = 'h("' + el.textContent + '") = ' + len + ' mod 10 = ' + (len % 10);
+};
+
+window.placeKey = function(idx, mode) {
+  var key = selectedKey[mode] || selectedKey[mode === 'L' ? 'Q' : 'L'];
+  if(!key) return;
+  if(tables[mode][idx]) return;
+  tables[mode][idx] = key;
+  usedKeys[mode][key] = true;
+  var cell = document.getElementById('table-'+mode).rows[idx].cells[1];
+  cell.textContent = key;
+  cell.className = 'cell filled';
+  checkAllUsed(mode);
+  selectedKey.L = null; selectedKey.Q = null;
+  var pills = document.getElementById('key-pills-L').querySelectorAll('.key-pill');
+  pills.forEach(function(p){
+    if(usedKeys.L[p.textContent] && usedKeys.Q[p.textContent]) {
+      p.classList.remove('selected'); p.classList.add('used');
+    } else { p.classList.remove('selected'); }
+  });
+  document.getElementById('hint-L').textContent = '키를 선택하면 h(x) 힌트가 표시돼';
+};
+
+function checkAllUsed(mode) {}
+
+window.checkQ1 = function() {
+  var score = 0, total = 20;
+  ['L','Q'].forEach(function(mode) {
+    var ans = mode === 'L' ? ansL : ansQ;
+    for(var i = 0; i < 10; i++) {
+      var cell = document.getElementById('table-'+mode).rows[i].cells[1];
+      var val = tables[mode][i];
+      if(val === ans[i]) { cell.className = 'cell correct'; score++; }
+      else if(val) { cell.className = 'cell wrong'; }
+    }
+  });
+  var msg = document.getElementById('q1-msg');
+  msg.className = 'result-msg show ' + (score === total ? 'ok' : 'err');
+  msg.textContent = score + ' / ' + total + ' 정답' + (score === total ? ' — 완벽해!' : ' — 틀린 칸은 빨간색으로 표시했어.');
+};
+
+window.resetQ1 = function() {
+  tables = {L: new Array(10).fill(null), Q: new Array(10).fill(null)};
+  usedKeys = {L:{}, Q:{}};
+  selectedKey = {L:null, Q:null};
+  ['L','Q'].forEach(function(mode){
+    for(var i=0;i<10;i++){
+      var cell = document.getElementById('table-'+mode).rows[i].cells[1];
+      cell.textContent = ''; cell.className = 'cell';
+    }
+  });
+  var pills = document.getElementById('key-pills-L').querySelectorAll('.key-pill');
+  pills.forEach(function(p){ p.className = 'key-pill'; p.setAttribute('onclick','selectKey(this,"L")'); });
+  document.getElementById('hint-L').textContent = '키를 선택하면 h(x) 힌트가 표시돼';
+  document.getElementById('q1-msg').className = 'result-msg';
+};
+
+/* ---- Q2 ---- */
+var oxAnswers = {1:'O',2:'X',3:'X',4:'X',5:'O',6:'X'};
+var oxSelected = {};
+
+window.selectOX = function(n, val) {
+  oxSelected[n] = val;
+  var btns = document.getElementById('ox'+n).querySelectorAll('.ox-btn');
+  btns.forEach(function(b){
+    b.className = 'ox-btn';
+    if(b.textContent === val) b.className = 'ox-btn sel-' + val;
+  });
+};
+
+window.checkQ2 = function() {
+  var score = 0;
+  for(var i=1;i<=6;i++){
+    var btns = document.getElementById('ox'+i).querySelectorAll('.ox-btn');
+    var exp = document.getElementById('exp'+i);
+    btns.forEach(function(b){
+      if(b.classList.contains('sel-O') || b.classList.contains('sel-X')) {
+        if(b.textContent === oxAnswers[i]) { b.className = 'ox-btn correct'; score++; }
+        else b.className = 'ox-btn wrong';
+      }
+    });
+    exp.className = 'ox-exp show';
+  }
+  var msg = document.getElementById('q2-msg');
+  msg.className = 'result-msg show ' + (score === 6 ? 'ok' : 'err');
+  msg.textContent = score + ' / 6 정답' + (score === 6 ? ' — 완벽해!' : '');
+};
+
+window.resetQ2 = function() {
+  oxSelected = {};
+  for(var i=1;i<=6;i++){
+    var btns = document.getElementById('ox'+i).querySelectorAll('.ox-btn');
+    btns.forEach(function(b){ b.className = 'ox-btn'; });
+    document.getElementById('exp'+i).className = 'ox-exp';
+  }
+  document.getElementById('q2-msg').className = 'result-msg';
+};
+
+/* ---- Q3 ---- */
+var traversalAns = {
+  inorder:   'I D K B E A J G C H',
+  preorder:  'A B D I K E C G J H',
+  postorder: 'I K D E B J G H C A',
+  level:     'A B C D E G H I K J'
+};
+var numSelected = {};
+var numAns = {'q3-bt':'14','q3-lc':'1','q3-fb':'0'};
+
+window.selectNum = function(gid, el) {
+  var btns = document.getElementById(gid).querySelectorAll('.num-opt');
+  btns.forEach(function(b){ b.className = 'num-opt'; });
+  el.className = 'num-opt sel';
+  numSelected[gid] = el.textContent;
+};
+
+function normalize(s){ return s.trim().toUpperCase().replace(/\s+/g,' '); }
+
+window.checkQ3 = function() {
+  var score = 0, total = 7;
+  var fields = ['inorder','preorder','postorder','level'];
+  fields.forEach(function(f){
+    var el = document.getElementById('in-'+f);
+    if(normalize(el.value) === normalize(traversalAns[f])){
+      el.className = 'traversal-input correct'; score++;
+    } else { el.className = 'traversal-input wrong'; }
+  });
+  ['q3-bt','q3-lc','q3-fb'].forEach(function(gid){
+    var btns = document.getElementById(gid).querySelectorAll('.num-opt');
+    btns.forEach(function(b){
+      if(b.classList.contains('sel')){
+        if(b.textContent === numAns[gid]){ b.className = 'num-opt correct'; score++; }
+        else b.className = 'num-opt wrong';
+      }
+    });
+  });
+  var msg = document.getElementById('q3-msg');
+  msg.className = 'result-msg show ' + (score === total ? 'ok' : 'err');
+  msg.textContent = score + ' / ' + total + ' 정답' + (score === total ? ' — 완벽해!' : '');
+};
+
+window.resetQ3 = function() {
+  ['inorder','preorder','postorder','level'].forEach(function(f){
+    var el = document.getElementById('in-'+f);
+    el.value = ''; el.className = 'traversal-input';
+  });
+  ['q3-bt','q3-lc','q3-fb'].forEach(function(gid){
+    var btns = document.getElementById(gid).querySelectorAll('.num-opt');
+    btns.forEach(function(b){ b.className = 'num-opt'; });
+    delete numSelected[gid];
+  });
+  document.getElementById('q3-msg').className = 'result-msg';
+};
+
+})();
+</script>
+</body>
+</html>
