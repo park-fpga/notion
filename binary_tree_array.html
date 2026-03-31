@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Tree — Array Structure</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1a1a1a; padding: 24px; }
+h2 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+.sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+.controls { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+input[type=text] {
+  width: 80px; padding: 7px 10px; font-size: 14px;
+  border: 1px solid #d0d0d0; border-radius: 8px;
+  outline: none; color: #1a1a1a; background: #fff;
+}
+input[type=text]:focus { border-color: #378ADD; }
+select {
+  padding: 7px 10px; font-size: 14px;
+  border: 1px solid #d0d0d0; border-radius: 8px;
+  outline: none; color: #1a1a1a; background: #fff;
+}
+button {
+  padding: 7px 16px; font-size: 14px;
+  border: 1px solid #d0d0d0; border-radius: 8px;
+  background: #fff; color: #1a1a1a; cursor: pointer;
+}
+button:hover { background: #f5f5f5; }
+button.danger { border-color: #f09595; color: #a32d2d; }
+button.danger:hover { background: #fcebeb; }
+.hint { font-size: 13px; color: #888; }
+.msg {
+  font-size: 13px; min-height: 20px; margin-bottom: 16px;
+  padding: 8px 12px; border-radius: 8px; display: none; line-height: 1.6;
+}
+.msg.show { display: block; }
+.msg.ok  { background: #eaf3de; color: #27500a; }
+.msg.info { background: #e6f1fb; color: #0c447c; }
+.msg.err { background: #fcebeb; color: #a32d2d; }
+
+.layout { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
+
+/* Tree SVG */
+#tree-wrap { flex: 1; min-width: 300px; }
+svg { width: 100%; overflow: visible; }
+
+/* Array table */
+.arr-wrap { min-width: 180px; }
+.arr-title { font-size: 13px; color: #888; margin-bottom: 8px; }
+.arr-table { border-collapse: collapse; }
+.arr-table td {
+  border: 1px solid #e0e0e0; padding: 6px 12px;
+  font-size: 13px; text-align: center; min-width: 48px;
+}
+.arr-table td.idx { color: #aaa; font-size: 12px; background: #fafafa; }
+.arr-table td.val { font-weight: 500; }
+.arr-table td.empty { color: #ccc; }
+.arr-table td.highlight { background: #e6f1fb; color: #0c447c; border-color: #85b7eb; }
+.arr-table td.highlight-idx { background: #eeedfe; color: #3c3489; border-color: #afa9ec; }
+
+/* Formula panel */
+.formula { margin-top: 16px; padding: 12px 16px; background: #fafafa; border-radius: 8px; border: 1px solid #e0e0e0; font-size: 13px; color: #444; line-height: 2; }
+.formula span { color: #0c447c; font-weight: 500; }
+
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+.leg { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #888; }
+.legbox { width: 12px; height: 12px; border-radius: 3px; border: 1px solid; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<h2>Binary Tree — Array Structure</h2>
+<p class="sub">노드를 클릭하면 자식/부모 인덱스를 계산해줘 &nbsp;|&nbsp; 최대 10개 노드 (인덱스 0~9)</p>
+
+<div class="controls">
+  <input type="text" id="val-input" placeholder="값 입력" maxlength="3" />
+  <select id="idx-select"></select>
+  <button id="ins-btn">삽입</button>
+  <button class="danger" id="rst-btn">초기화</button>
+</div>
+
+<div class="msg" id="msg"></div>
+
+<div class="layout">
+  <div id="tree-wrap">
+    <svg id="tree-svg" viewBox="0 0 400 260"></svg>
+    <div class="legend">
+      <div class="leg"><div class="legbox" style="background:#eeedfe;border-color:#afa9ec;"></div>선택된 노드</div>
+      <div class="leg"><div class="legbox" style="background:#e6f1fb;border-color:#85b7eb;"></div>자식/부모</div>
+      <div class="leg"><div class="legbox" style="background:#faeeda;border-color:#ef9f27;"></div>빈 슬롯 (null)</div>
+    </div>
+  </div>
+
+  <div class="arr-wrap">
+    <div class="arr-title">배열 A</div>
+    <table class="arr-table" id="arr-table"></table>
+    <div class="formula" id="formula">
+      노드를 클릭하면<br>인덱스 계산식이 표시돼
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SIZE = 10;
+  var arr = new Array(SIZE).fill(null);
+  var selected = -1;
+
+  var positions = [
+    {x:200, y:30},
+    {x:110, y:95},  {x:290, y:95},
+    {x:60,  y:160}, {x:160, y:160}, {x:240, y:160}, {x:340, y:160},
+    {x:35,  y:220}, {x:85,  y:220}, {x:135, y:220}
+  ];
+
+  function leftChild(i)  { return 2*i+1 < SIZE ? 2*i+1 : -1; }
+  function rightChild(i) { return 2*i+2 < SIZE ? 2*i+2 : -1; }
+  function parent(i)     { return i === 0 ? -1 : Math.floor((i-1)/2); }
+
+  function updateSelect() {
+    var sel = document.getElementById('idx-select');
+    sel.innerHTML = '';
+    for(var i = 0; i < SIZE; i++) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = '[' + i + '] ' + (arr[i] !== null ? arr[i] : '비어있음');
+      sel.appendChild(opt);
+    }
+  }
+
+  function renderTree() {
+    var svg = document.getElementById('tree-svg');
+    svg.innerHTML = '';
+
+    var edges = [
+      [0,1],[0,2],[1,3],[1,4],[2,5],[2,6],[3,7],[3,8],[4,9]
+    ];
+
+    var related = [];
+    if(selected >= 0) {
+      var l = leftChild(selected);
+      var r = rightChild(selected);
+      var p = parent(selected);
+      if(l >= 0) related.push(l);
+      if(r >= 0) related.push(r);
+      if(p >= 0) related.push(p);
+    }
+
+    edges.forEach(function(e) {
+      var a = positions[e[0]], b = positions[e[1]];
+      var line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+      line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+      line.setAttribute('stroke', '#d0d0d0'); line.setAttribute('stroke-width', '0.5');
+      svg.appendChild(line);
+    });
+
+    for(var i = 0; i < SIZE; i++) {
+      var pos = positions[i];
+      if(!pos) continue;
+      var g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.style.cursor = 'pointer';
+      (function(idx){ g.addEventListener('click', function(){ selectNode(idx); }); })(i);
+
+      var circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y); circle.setAttribute('r', 18);
+      circle.setAttribute('stroke-width', '0.5');
+
+      var isSelected = (i === selected);
+      var isRelated  = related.indexOf(i) >= 0;
+      var isEmpty    = arr[i] === null;
+
+      if(isSelected) {
+        circle.setAttribute('fill', '#eeedfe'); circle.setAttribute('stroke', '#afa9ec');
+      } else if(isRelated) {
+        circle.setAttribute('fill', '#e6f1fb'); circle.setAttribute('stroke', '#85b7eb');
+      } else if(isEmpty) {
+        circle.setAttribute('fill', '#faeeda'); circle.setAttribute('stroke', '#ef9f27');
+        circle.setAttribute('stroke-dasharray', '4 3');
+      } else {
+        circle.setAttribute('fill', '#fff'); circle.setAttribute('stroke', '#d0d0d0');
+      }
+
+      var idxText = document.createElementNS('http://www.w3.org/2000/svg','text');
+      idxText.setAttribute('x', pos.x); idxText.setAttribute('y', pos.y - 22);
+      idxText.setAttribute('text-anchor', 'middle');
+      idxText.setAttribute('font-size', '11'); idxText.setAttribute('fill', '#aaa');
+      idxText.textContent = i;
+
+      var valText = document.createElementNS('http://www.w3.org/2000/svg','text');
+      valText.setAttribute('x', pos.x); valText.setAttribute('y', pos.y);
+      valText.setAttribute('text-anchor', 'middle'); valText.setAttribute('dominant-baseline', 'central');
+      valText.setAttribute('font-size', '13'); valText.setAttribute('font-weight', '500');
+      if(isSelected) valText.setAttribute('fill', '#3c3489');
+      else if(isRelated) valText.setAttribute('fill', '#0c447c');
+      else if(isEmpty) valText.setAttribute('fill', '#ccc');
+      else valText.setAttribute('fill', '#1a1a1a');
+      valText.textContent = arr[i] !== null ? arr[i] : '∅';
+
+      g.appendChild(circle); g.appendChild(idxText); g.appendChild(valText);
+      svg.appendChild(g);
+    }
+  }
+
+  function renderArr() {
+    var table = document.getElementById('arr-table');
+    table.innerHTML = '';
+
+    var related = [];
+    if(selected >= 0) {
+      var l = leftChild(selected);
+      var r = rightChild(selected);
+      var p = parent(selected);
+      if(l >= 0) related.push(l);
+      if(r >= 0) related.push(r);
+      if(p >= 0) related.push(p);
+    }
+
+    for(var i = 0; i < SIZE; i++) {
+      var tr = document.createElement('tr');
+      var tdIdx = document.createElement('td');
+      tdIdx.className = 'idx' + (i === selected ? ' highlight-idx' : '');
+      tdIdx.textContent = '[' + i + ']';
+      var tdVal = document.createElement('td');
+      var isRel = related.indexOf(i) >= 0;
+      tdVal.className = 'val' + (i === selected ? ' highlight' : isRel ? ' highlight' : arr[i] === null ? ' empty' : '');
+      tdVal.textContent = arr[i] !== null ? arr[i] : '—';
+      tr.appendChild(tdIdx); tr.appendChild(tdVal);
+      table.appendChild(tr);
+    }
+  }
+
+  function renderFormula() {
+    var f = document.getElementById('formula');
+    if(selected < 0) {
+      f.innerHTML = '노드를 클릭하면<br>인덱스 계산식이 표시돼';
+      return;
+    }
+    var l = leftChild(selected);
+    var r = rightChild(selected);
+    var p = parent(selected);
+    var html = '<b>선택: [' + selected + '] ' + (arr[selected] !== null ? arr[selected] : '∅') + '</b><br>';
+    html += '왼쪽 자식: <span>2×' + selected + '+1 = ' + (2*selected+1) + '</span> → ' + (l>=0 && arr[l]!==null ? arr[l] : '∅') + '<br>';
+    html += '오른쪽 자식: <span>2×' + selected + '+2 = ' + (2*selected+2) + '</span> → ' + (r>=0 && arr[r]!==null ? arr[r] : '∅') + '<br>';
+    if(p >= 0) {
+      html += '부모: <span>(' + selected + '-1)/2 = ' + p + '</span> → ' + (arr[p]!==null ? arr[p] : '∅');
+    } else {
+      html += '부모: <span>루트 (없음)</span>';
+    }
+    f.innerHTML = html;
+  }
+
+  function selectNode(i) {
+    selected = (selected === i) ? -1 : i;
+    renderTree(); renderArr(); renderFormula();
+    var msg = document.getElementById('msg');
+    if(selected >= 0) {
+      msg.className = 'msg show info';
+      msg.textContent = '[' + selected + '] 선택됨. 왼쪽 자식=[' + (2*selected+1) + '], 오른쪽 자식=[' + (2*selected+2) + '], 부모=[' + (selected===0?'없음':parent(selected)) + ']';
+    } else {
+      msg.className = 'msg';
+    }
+  }
+
+  function insert() {
+    var val = document.getElementById('val-input').value.trim();
+    var idx = parseInt(document.getElementById('idx-select').value);
+    if(val === '') { showMsg('값을 입력해줘.', 'err'); return; }
+    arr[idx] = val;
+    selected = idx;
+    updateSelect();
+    renderTree(); renderArr(); renderFormula();
+    showMsg('[' + idx + ']에 "' + val + '" 삽입 완료.', 'ok');
+    document.getElementById('val-input').value = '';
+  }
+
+  function reset() {
+    arr = new Array(SIZE).fill(null);
+    selected = -1;
+    updateSelect();
+    renderTree(); renderArr(); renderFormula();
+    document.getElementById('msg').className = 'msg';
+  }
+
+  function showMsg(text, type) {
+    var msg = document.getElementById('msg');
+    msg.className = 'msg show ' + type;
+    msg.textContent = text;
+  }
+
+  document.getElementById('ins-btn').addEventListener('click', insert);
+  document.getElementById('rst-btn').addEventListener('click', reset);
+  document.getElementById('val-input').addEventListener('keydown', function(e){ if(e.key==='Enter') insert(); });
+
+  updateSelect();
+  renderTree(); renderArr(); renderFormula();
+})();
+</script>
+</body>
+</html>
