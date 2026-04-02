@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linked List — 시각화</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f7f5; color: #1a1a1a; padding: 20px; }
+h1 { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+.top-sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+.tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab { padding: 7px 16px; font-size: 13px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff; color: #888; cursor: pointer; }
+.tab:hover { background: #f5f5f5; }
+.tab.active { background: #eeedfe; border-color: #afa9ec; color: #3c3489; font-weight: 500; }
+.panel { display: none; }
+.panel.active { display: block; }
+.section { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.section-title { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+.section-sub { font-size: 12px; color: #888; margin-bottom: 14px; line-height: 1.5; }
+.controls { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+input[type=text] { width: 90px; padding: 6px 10px; font-size: 13px; border: 1px solid #d0d0d0; border-radius: 8px; outline: none; color: #1a1a1a; background: #fff; }
+input[type=text]:focus { border-color: #7F77DD; }
+select { padding: 6px 10px; font-size: 13px; border: 1px solid #d0d0d0; border-radius: 8px; outline: none; color: #1a1a1a; background: #fff; }
+button { padding: 6px 14px; font-size: 13px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff; color: #1a1a1a; cursor: pointer; }
+button:hover { background: #f5f5f5; }
+button.primary { background: #eeedfe; border-color: #afa9ec; color: #3c3489; }
+button.primary:hover { background: #dddcfc; }
+button.danger { border-color: #f09595; color: #a32d2d; }
+button.danger:hover { background: #fcebeb; }
+.viz { overflow-x: auto; padding: 12px 0 6px; min-height: 80px; display: flex; align-items: center; }
+.node-wrap { display: flex; align-items: center; }
+.node { display: flex; flex-direction: column; align-items: center; }
+.node-box { min-width: 56px; height: 40px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; padding: 0 10px; white-space: nowrap; transition: all 0.2s; }
+.node-box.head-node { background: #eaf3de; border-color: #97c459; color: #27500a; }
+.node-box.tail-node { background: #faeeda; border-color: #ef9f27; color: #633806; }
+.node-box.new-node { background: #eeedfe; border-color: #afa9ec; color: #3c3489; }
+.node-box.dummy { background: #f5f5f5; border-color: #d0d0d0; color: #aaa; font-size: 11px; }
+.node-box.top-node { background: #eeedfe; border-color: #afa9ec; color: #3c3489; }
+.node-box.front-node { background: #eaf3de; border-color: #97c459; color: #27500a; }
+.node-box.rear-node { background: #faeeda; border-color: #ef9f27; color: #633806; }
+.node-lbl { font-size: 10px; color: #aaa; margin-top: 3px; height: 14px; }
+.arrow { display: flex; align-items: center; padding: 0 4px; color: #aaa; font-size: 16px; }
+.arrow-double { display: flex; flex-direction: column; align-items: center; padding: 0 4px; gap: 2px; font-size: 11px; color: #aaa; }
+.null-marker { font-size: 13px; color: #ccc; padding: 0 6px; }
+.log { font-size: 12px; color: #666; margin-top: 10px; padding: 8px 12px; background: #fafafa; border-radius: 8px; border: 1px solid #e0e0e0; min-height: 32px; line-height: 1.6; }
+.log.ok { background: #eaf3de; border-color: #97c459; color: #27500a; }
+.log.err { background: #fcebeb; border-color: #f09595; color: #a32d2d; }
+.log.info { background: #faeeda; border-color: #ef9f27; color: #633806; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+.leg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #888; }
+.legbox { width: 12px; height: 12px; border-radius: 3px; border: 1px solid; }
+</style>
+</head>
+<body>
+
+<h1>Linked List — 시각화</h1>
+<p class="top-sub">노드를 직접 추가/삭제하면서 포인터 연결을 확인해봐</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('singly',this)">Singly Linked List</button>
+  <button class="tab" onclick="switchTab('doubly',this)">Doubly Linked List</button>
+  <button class="tab" onclick="switchTab('stack',this)">Stack (linked)</button>
+  <button class="tab" onclick="switchTab('queue',this)">Queue (linked)</button>
+</div>
+
+<!-- SINGLY -->
+<div class="panel active" id="panel-singly">
+  <div class="section">
+    <div class="section-title">Singly Linked List</div>
+    <div class="section-sub">각 노드: element + next 포인터 | head에서 시작, 마지막 next = null</div>
+    <div class="controls">
+      <input type="text" id="s-val" placeholder="값 입력" maxlength="6"/>
+      <select id="s-pos">
+        <option value="head">head에 삽입</option>
+        <option value="tail">tail에 삽입</option>
+        <option value="after">선택 노드 뒤에</option>
+      </select>
+      <select id="s-target" style="display:none"></select>
+      <button class="primary" onclick="sInsert()">삽입</button>
+      <button onclick="sRemoveHead()">head 삭제</button>
+      <button onclick="sRemoveTail()">tail 삭제 (O(n))</button>
+      <button class="danger" onclick="sReset()">초기화</button>
+    </div>
+    <div class="viz" id="s-viz"></div>
+    <div class="legend">
+      <div class="leg"><div class="legbox" style="background:#eaf3de;border-color:#97c459;"></div>head</div>
+      <div class="leg"><div class="legbox" style="background:#faeeda;border-color:#ef9f27;"></div>tail</div>
+      <div class="leg"><div class="legbox" style="background:#eeedfe;border-color:#afa9ec;"></div>새로 삽입</div>
+    </div>
+    <div class="log" id="s-log">값을 입력하고 삽입해봐</div>
+  </div>
+</div>
+
+<!-- DOUBLY -->
+<div class="panel" id="panel-doubly">
+  <div class="section">
+    <div class="section-title">Doubly Linked List</div>
+    <div class="section-sub">각 노드: prev + element + next | header/trailer dummy node 사용 | 양방향 이동 가능</div>
+    <div class="controls">
+      <input type="text" id="d-val" placeholder="값 입력" maxlength="6"/>
+      <select id="d-pos">
+        <option value="front">맨 앞에 삽입</option>
+        <option value="back">맨 뒤에 삽입</option>
+        <option value="after">선택 노드 뒤에</option>
+      </select>
+      <select id="d-target" style="display:none"></select>
+      <button class="primary" onclick="dInsert()">삽입</button>
+      <button onclick="dRemoveFront()">앞 삭제</button>
+      <button onclick="dRemoveBack()">뒤 삭제 (O(1))</button>
+      <button class="danger" onclick="dReset()">초기화</button>
+    </div>
+    <div class="viz" id="d-viz"></div>
+    <div class="legend">
+      <div class="leg"><div class="legbox" style="background:#f5f5f5;border-color:#d0d0d0;"></div>dummy (header/trailer)</div>
+      <div class="leg"><div class="legbox" style="background:#eeedfe;border-color:#afa9ec;"></div>새로 삽입</div>
+    </div>
+    <div class="log" id="d-log">값을 입력하고 삽입해봐</div>
+  </div>
+</div>
+
+<!-- STACK -->
+<div class="panel" id="panel-stack">
+  <div class="section">
+    <div class="section-title">Stack as Linked List</div>
+    <div class="section-sub">top = head | push → head에 삽입 | pop → head에서 삭제 | 모두 O(1)</div>
+    <div class="controls">
+      <input type="text" id="st-val" placeholder="값 입력" maxlength="6"/>
+      <button class="primary" onclick="stPush()">push</button>
+      <button onclick="stPop()">pop</button>
+      <button onclick="stTop()">top</button>
+      <button class="danger" onclick="stReset()">초기화</button>
+    </div>
+    <div class="viz" id="st-viz" style="flex-direction:column-reverse; align-items:flex-start; gap:4px; min-height:120px;"></div>
+    <div class="log" id="st-log">push로 쌓고 pop으로 꺼내봐 (LIFO)</div>
+  </div>
+</div>
+
+<!-- QUEUE -->
+<div class="panel" id="panel-queue">
+  <div class="section">
+    <div class="section-title">Queue as Linked List</div>
+    <div class="section-sub">front = head (dequeue쪽) | rear = tail (enqueue쪽) | 모두 O(1)</div>
+    <div class="controls">
+      <input type="text" id="q-val" placeholder="값 입력" maxlength="6"/>
+      <button class="primary" onclick="qEnqueue()">enqueue</button>
+      <button onclick="qDequeue()">dequeue</button>
+      <button onclick="qFirst()">first</button>
+      <button class="danger" onclick="qReset()">초기화</button>
+    </div>
+    <div class="viz" id="q-viz"></div>
+    <div class="legend">
+      <div class="leg"><div class="legbox" style="background:#eaf3de;border-color:#97c459;"></div>front (dequeue)</div>
+      <div class="leg"><div class="legbox" style="background:#faeeda;border-color:#ef9f27;"></div>rear (enqueue)</div>
+    </div>
+    <div class="log" id="q-log">enqueue로 넣고 dequeue로 꺼내봐 (FIFO)</div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+/* ---- Tab ---- */
+window.switchTab = function(id, el) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+};
+
+/* ========== SINGLY ========== */
+var sNodes = [];
+var sNew = null;
+
+function sRenderTargetSelect() {
+  var sel = document.getElementById('s-target');
+  sel.innerHTML = '';
+  sNodes.forEach(function(n, i) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = n.val;
+    sel.appendChild(opt);
+  });
+}
+
+document.getElementById('s-pos').addEventListener('change', function() {
+  document.getElementById('s-target').style.display = this.value === 'after' ? '' : 'none';
+  if(this.value === 'after') sRenderTargetSelect();
+});
+
+function sRender() {
+  var viz = document.getElementById('s-viz');
+  viz.innerHTML = '';
+  if(sNodes.length === 0) {
+    viz.innerHTML = '<span style="font-size:13px;color:#ccc;">비어있음 (head = null)</span>';
+    return;
+  }
+  sNodes.forEach(function(n, i) {
+    var wrap = document.createElement('div');
+    wrap.className = 'node-wrap';
+    var node = document.createElement('div');
+    node.className = 'node';
+    var box = document.createElement('div');
+    var cls = 'node-box';
+    if(n.isNew) cls += ' new-node';
+    else if(i === 0) cls += ' head-node';
+    else if(i === sNodes.length-1) cls += ' tail-node';
+    box.className = cls;
+    box.textContent = n.val;
+    var lbl = document.createElement('div');
+    lbl.className = 'node-lbl';
+    lbl.textContent = i===0 ? 'head' : i===sNodes.length-1 ? 'tail' : '';
+    node.appendChild(box);
+    node.appendChild(lbl);
+    wrap.appendChild(node);
+    if(i < sNodes.length-1) {
+      var arr = document.createElement('div');
+      arr.className = 'arrow';
+      arr.textContent = '→';
+      wrap.appendChild(arr);
+    }
+    viz.appendChild(wrap);
+  });
+  var nullM = document.createElement('div');
+  nullM.className = 'arrow';
+  nullM.textContent = '→';
+  viz.appendChild(nullM);
+  var nullEl = document.createElement('span');
+  nullEl.className = 'null-marker';
+  nullEl.textContent = 'null';
+  viz.appendChild(nullEl);
+  setTimeout(function(){ sNodes.forEach(function(n){ n.isNew=false; }); }, 800);
+}
+
+window.sInsert = function() {
+  var val = document.getElementById('s-val').value.trim();
+  if(!val) return;
+  var pos = document.getElementById('s-pos').value;
+  var node = {val: val, isNew: true};
+  if(pos === 'head') {
+    sNodes.unshift(node);
+    sLog('add_first("'+val+'") → head에 삽입. head가 새 노드를 가리킴.', 'ok');
+  } else if(pos === 'tail') {
+    sNodes.push(node);
+    sLog('add_last("'+val+'") → tail.next = new node, tail 업데이트.', 'ok');
+  } else {
+    var idx = parseInt(document.getElementById('s-target').value);
+    sNodes.splice(idx+1, 0, node);
+    sLog('add_after("'+val+'", p='+sNodes[idx].val+') → newest.next = p.next, p.next = newest.', 'ok');
+  }
+  sRenderTargetSelect();
+  sRender();
+  document.getElementById('s-val').value = '';
+};
+
+window.sRemoveHead = function() {
+  if(sNodes.length === 0) { sLog('비어있어! 삭제 불가.', 'err'); return; }
+  var v = sNodes.shift().val;
+  sLog('remove_first() → "'+v+'" 삭제. head = head.next.', 'info');
+  sRenderTargetSelect(); sRender();
+};
+
+window.sRemoveTail = function() {
+  if(sNodes.length === 0) { sLog('비어있어! 삭제 불가.', 'err'); return; }
+  var v = sNodes.pop().val;
+  sLog('tail 삭제 → "'+v+'" 삭제. head부터 n-1번 순회 필요 → O(n)!', 'info');
+  sRenderTargetSelect(); sRender();
+};
+
+window.sReset = function() {
+  sNodes = []; sRender();
+  document.getElementById('s-log').className = 'log';
+  document.getElementById('s-log').textContent = '값을 입력하고 삽입해봐';
+};
+
+function sLog(msg, type) {
+  var el = document.getElementById('s-log');
+  el.className = 'log ' + type;
+  el.textContent = msg;
+}
+
+sRender();
+
+/* ========== DOUBLY ========== */
+var dNodes = [];
+var dNew = null;
+
+function dRenderTargetSelect() {
+  var sel = document.getElementById('d-target');
+  sel.innerHTML = '';
+  dNodes.forEach(function(n, i) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = n.val;
+    sel.appendChild(opt);
+  });
+}
+
+document.getElementById('d-pos').addEventListener('change', function() {
+  document.getElementById('d-target').style.display = this.value === 'after' ? '' : 'none';
+  if(this.value === 'after') dRenderTargetSelect();
+});
+
+function dRender() {
+  var viz = document.getElementById('d-viz');
+  viz.innerHTML = '';
+  var header = document.createElement('div');
+  header.className = 'node';
+  var hbox = document.createElement('div');
+  hbox.className = 'node-box dummy';
+  hbox.textContent = 'header';
+  var hlbl = document.createElement('div');
+  hlbl.className = 'node-lbl';
+  hlbl.textContent = 'dummy';
+  header.appendChild(hbox); header.appendChild(hlbl);
+  viz.appendChild(header);
+
+  dNodes.forEach(function(n, i) {
+    var arr = document.createElement('div');
+    arr.className = 'arrow-double';
+    arr.innerHTML = '<span>→</span><span>←</span>';
+    viz.appendChild(arr);
+    var node = document.createElement('div');
+    node.className = 'node';
+    var box = document.createElement('div');
+    box.className = 'node-box' + (n.isNew ? ' new-node' : '');
+    box.textContent = n.val;
+    var lbl = document.createElement('div');
+    lbl.className = 'node-lbl';
+    lbl.textContent = '';
+    node.appendChild(box); node.appendChild(lbl);
+    viz.appendChild(node);
+  });
+
+  var arr2 = document.createElement('div');
+  arr2.className = 'arrow-double';
+  arr2.innerHTML = '<span>→</span><span>←</span>';
+  viz.appendChild(arr2);
+
+  var trailer = document.createElement('div');
+  trailer.className = 'node';
+  var tbox = document.createElement('div');
+  tbox.className = 'node-box dummy';
+  tbox.textContent = 'trailer';
+  var tlbl = document.createElement('div');
+  tlbl.className = 'node-lbl';
+  tlbl.textContent = 'dummy';
+  trailer.appendChild(tbox); trailer.appendChild(tlbl);
+  viz.appendChild(trailer);
+
+  setTimeout(function(){ dNodes.forEach(function(n){ n.isNew=false; }); }, 800);
+}
+
+window.dInsert = function() {
+  var val = document.getElementById('d-val').value.trim();
+  if(!val) return;
+  var pos = document.getElementById('d-pos').value;
+  var node = {val: val, isNew: true};
+  if(pos === 'front') {
+    dNodes.unshift(node);
+    dLog('insert_after(header, "'+val+'") → header 바로 뒤에 삽입. O(1).', 'ok');
+  } else if(pos === 'back') {
+    dNodes.push(node);
+    dLog('insert_before(trailer, "'+val+'") → trailer 바로 앞에 삽입. O(1).', 'ok');
+  } else {
+    var idx = parseInt(document.getElementById('d-target').value);
+    dNodes.splice(idx+1, 0, node);
+    dLog('insert_after(p="'+dNodes[idx].val+'", "'+val+'") → prev/next 포인터 4개 갱신. O(1).', 'ok');
+  }
+  dRenderTargetSelect(); dRender();
+  document.getElementById('d-val').value = '';
+};
+
+window.dRemoveFront = function() {
+  if(dNodes.length === 0) { dLog('비어있어! 삭제 불가.', 'err'); return; }
+  var v = dNodes.shift().val;
+  dLog('delete(header.next) → "'+v+'" 삭제. prev/next 포인터 2개 갱신. O(1).', 'info');
+  dRenderTargetSelect(); dRender();
+};
+
+window.dRemoveBack = function() {
+  if(dNodes.length === 0) { dLog('비어있어! 삭제 불가.', 'err'); return; }
+  var v = dNodes.pop().val;
+  dLog('delete(trailer.prev) → "'+v+'" 삭제. prev 포인터로 바로 접근 → O(1)!', 'info');
+  dRenderTargetSelect(); dRender();
+};
+
+window.dReset = function() {
+  dNodes = []; dRender();
+  document.getElementById('d-log').className = 'log';
+  document.getElementById('d-log').textContent = '값을 입력하고 삽입해봐';
+};
+
+function dLog(msg, type) {
+  var el = document.getElementById('d-log');
+  el.className = 'log ' + type;
+  el.textContent = msg;
+}
+
+dRender();
+
+/* ========== STACK ========== */
+var stNodes = [];
+
+function stRender() {
+  var viz = document.getElementById('st-viz');
+  viz.innerHTML = '';
+  viz.style.flexDirection = 'column';
+  viz.style.alignItems = 'flex-start';
+  viz.style.gap = '4px';
+
+  if(stNodes.length === 0) {
+    viz.innerHTML = '<span style="font-size:13px;color:#ccc;">비어있음 (top = null)</span>';
+    return;
+  }
+
+  stNodes.forEach(function(n, i) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;';
+    var box = document.createElement('div');
+    box.className = 'node-box' + (i===0 ? ' top-node' : '');
+    box.style.minWidth = '80px';
+    box.textContent = n.val;
+    var lbl = document.createElement('span');
+    lbl.style.cssText = 'font-size:11px;color:#aaa;';
+    lbl.textContent = i===0 ? '← top (head)' : '';
+    row.appendChild(box);
+    row.appendChild(lbl);
+    viz.appendChild(row);
+    if(i < stNodes.length-1) {
+      var arr = document.createElement('div');
+      arr.style.cssText = 'font-size:13px;color:#ccc;padding-left:8px;';
+      arr.textContent = '↓ next';
+      viz.appendChild(arr);
+    }
+  });
+}
+
+window.stPush = function() {
+  var val = document.getElementById('st-val').value.trim();
+  if(!val) return;
+  stNodes.unshift({val: val});
+  stLog('push("'+val+'") → head에 새 노드 삽입. O(1).', 'ok');
+  stRender();
+  document.getElementById('st-val').value = '';
+};
+
+window.stPop = function() {
+  if(stNodes.length === 0) { stLog('Stack이 비어있어! (EmptyError)', 'err'); return; }
+  var v = stNodes.shift().val;
+  stLog('pop() → "'+v+'" 반환 및 삭제. head = head.next. O(1).', 'info');
+  stRender();
+};
+
+window.stTop = function() {
+  if(stNodes.length === 0) { stLog('Stack이 비어있어! (EmptyError)', 'err'); return; }
+  stLog('top() → "'+stNodes[0].val+'" 반환 (삭제 안 함). O(1).', 'ok');
+};
+
+window.stReset = function() {
+  stNodes = []; stRender();
+  document.getElementById('st-log').className = 'log';
+  document.getElementById('st-log').textContent = 'push로 쌓고 pop으로 꺼내봐 (LIFO)';
+};
+
+function stLog(msg, type) {
+  var el = document.getElementById('st-log');
+  el.className = 'log ' + type;
+  el.textContent = msg;
+}
+
+stRender();
+
+/* ========== QUEUE ========== */
+var qNodes = [];
+
+function qRender() {
+  var viz = document.getElementById('q-viz');
+  viz.innerHTML = '';
+
+  if(qNodes.length === 0) {
+    viz.innerHTML = '<span style="font-size:13px;color:#ccc;">비어있음 (front = rear = null)</span>';
+    return;
+  }
+
+  qNodes.forEach(function(n, i) {
+    var wrap = document.createElement('div');
+    wrap.className = 'node-wrap';
+    var node = document.createElement('div');
+    node.className = 'node';
+    var box = document.createElement('div');
+    var cls = 'node-box';
+    if(i===0) cls += ' front-node';
+    else if(i===qNodes.length-1) cls += ' rear-node';
+    box.className = cls;
+    box.textContent = n.val;
+    var lbl = document.createElement('div');
+    lbl.className = 'node-lbl';
+    lbl.textContent = i===0 ? 'front' : i===qNodes.length-1 ? 'rear' : '';
+    node.appendChild(box); node.appendChild(lbl);
+    wrap.appendChild(node);
+    if(i < qNodes.length-1) {
+      var arr = document.createElement('div');
+      arr.className = 'arrow';
+      arr.textContent = '→';
+      wrap.appendChild(arr);
+    }
+    viz.appendChild(wrap);
+  });
+
+  var nullM = document.createElement('div');
+  nullM.className = 'arrow';
+  nullM.textContent = '→';
+  viz.appendChild(nullM);
+  var nullEl = document.createElement('span');
+  nullEl.className = 'null-marker';
+  nullEl.textContent = 'null';
+  viz.appendChild(nullEl);
+}
+
+window.qEnqueue = function() {
+  var val = document.getElementById('q-val').value.trim();
+  if(!val) return;
+  qNodes.push({val: val});
+  qLog('enqueue("'+val+'") → tail에 새 노드 삽입. rear = newest. O(1).', 'ok');
+  qRender();
+  document.getElementById('q-val').value = '';
+};
+
+window.qDequeue = function() {
+  if(qNodes.length === 0) { qLog('Queue가 비어있어! (EmptyError)', 'err'); return; }
+  var v = qNodes.shift().val;
+  qLog('dequeue() → "'+v+'" 반환. front = front.next. O(1).', 'info');
+  qRender();
+};
+
+window.qFirst = function() {
+  if(qNodes.length === 0) { qLog('Queue가 비어있어! (EmptyError)', 'err'); return; }
+  qLog('first() → "'+qNodes[0].val+'" 반환 (삭제 안 함). O(1).', 'ok');
+};
+
+window.qReset = function() {
+  qNodes = []; qRender();
+  document.getElementById('q-log').className = 'log';
+  document.getElementById('q-log').textContent = 'enqueue로 넣고 dequeue로 꺼내봐 (FIFO)';
+};
+
+function qLog(msg, type) {
+  var el = document.getElementById('q-log');
+  el.className = 'log ' + type;
+  el.textContent = msg;
+}
+
+qRender();
+
+document.querySelectorAll('input[type=text]').forEach(function(inp) {
+  inp.addEventListener('keydown', function(e) {
+    if(e.key !== 'Enter') return;
+    var id = inp.id;
+    if(id==='s-val') sInsert();
+    else if(id==='d-val') dInsert();
+    else if(id==='st-val') stPush();
+    else if(id==='q-val') qEnqueue();
+  });
+});
+
+})();
+</script>
+</body>
+</html>
