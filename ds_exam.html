@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자료구조 종합 시험</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f7f5; color: #1a1a1a; padding: 24px; max-width: 780px; margin: 0 auto; }
+.header { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+.header h1 { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+.header-sub { font-size: 13px; color: #888; }
+.timer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+.timer { font-size: 22px; font-weight: 500; color: #3c3489; font-variant-numeric: tabular-nums; }
+.timer.warn { color: #a32d2d; }
+.progress-bar-bg { height: 4px; background: #e0e0e0; border-radius: 2px; margin-top: 8px; }
+.progress-bar-fill { height: 4px; background: #7F77DD; border-radius: 2px; transition: width 0.3s; }
+.score-badge { font-size: 13px; color: #888; }
+
+.q-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px 24px; margin-bottom: 12px; }
+.q-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.q-num { font-size: 12px; color: #888; }
+.q-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #eeedfe; color: #3c3489; border: 1px solid #afa9ec; }
+.q-tag.ox { background: #e6f1fb; color: #0c447c; border-color: #85b7eb; }
+.q-text { font-size: 14px; line-height: 1.7; margin-bottom: 14px; color: #1a1a1a; }
+.q-text code { background: #f5f5f5; padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
+
+/* MCQ */
+.opts { display: flex; flex-direction: column; gap: 7px; }
+.opt-btn { text-align: left; padding: 9px 14px; font-size: 13px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff; color: #1a1a1a; cursor: pointer; line-height: 1.5; }
+.opt-btn:hover:not(:disabled) { background: #f5f5f5; border-color: #b0b0b0; }
+.opt-btn.selected { background: #eeedfe; border-color: #afa9ec; color: #3c3489; }
+.opt-btn.correct { background: #eaf3de; border-color: #97c459; color: #27500a; }
+.opt-btn.wrong { background: #fcebeb; border-color: #f09595; color: #a32d2d; }
+.opt-btn.reveal { background: #eaf3de; border-color: #97c459; color: #27500a; opacity: 0.7; }
+
+/* OX */
+.ox-btns { display: flex; gap: 10px; }
+.ox-btn { width: 60px; height: 44px; font-size: 18px; font-weight: 500; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff; cursor: pointer; }
+.ox-btn:hover:not(:disabled) { background: #f5f5f5; }
+.ox-btn.sel-O { background: #e6f1fb; border-color: #85b7eb; color: #0c447c; }
+.ox-btn.sel-X { background: #fcebeb; border-color: #f09595; color: #a32d2d; }
+.ox-btn.correct { background: #eaf3de; border-color: #97c459; color: #27500a; }
+.ox-btn.wrong { background: #fcebeb; border-color: #f09595; color: #a32d2d; }
+
+.exp { margin-top: 10px; font-size: 12px; padding: 8px 12px; border-radius: 8px; display: none; line-height: 1.6; }
+.exp.show { display: block; }
+.exp.ok { background: #eaf3de; color: #27500a; }
+.exp.err { background: #fcebeb; color: #a32d2d; }
+
+/* Bottom */
+.bottom { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+.submit-btn { padding: 10px 28px; font-size: 15px; border: 1px solid #afa9ec; border-radius: 8px; background: #eeedfe; color: #3c3489; cursor: pointer; font-weight: 500; }
+.submit-btn:hover { background: #dddcfc; }
+.reset-btn { padding: 10px 20px; font-size: 14px; border: 1px solid #f09595; border-radius: 8px; background: #fff; color: #a32d2d; cursor: pointer; }
+.reset-btn:hover { background: #fcebeb; }
+
+/* Result */
+.result { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 28px 24px; margin-top: 16px; display: none; }
+.result.show { display: block; }
+.result-score { font-size: 48px; font-weight: 500; text-align: center; margin-bottom: 8px; }
+.result-msg { font-size: 15px; color: #888; text-align: center; margin-bottom: 20px; }
+.result-breakdown { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 20px; }
+.rb-item { padding: 6px; border-radius: 6px; text-align: center; font-size: 12px; border: 1px solid; }
+.rb-item.ok { background: #eaf3de; border-color: #97c459; color: #27500a; }
+.rb-item.no { background: #fcebeb; border-color: #f09595; color: #a32d2d; }
+.rb-item .rb-num { font-weight: 500; font-size: 13px; }
+.retry-btn { display: block; margin: 0 auto; padding: 10px 32px; font-size: 14px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff; color: #1a1a1a; cursor: pointer; }
+.retry-btn:hover { background: #f5f5f5; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>자료구조 종합 시험</h1>
+  <div class="header-sub">Hash Table · Tree · Queue · Linked List | 20문제 · 10분</div>
+  <div class="timer-row">
+    <div class="timer" id="timer">10:00</div>
+    <div class="score-badge" id="score-badge">0 / 20</div>
+  </div>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress" style="width:0%"></div></div>
+</div>
+
+<div id="quiz-wrap"></div>
+
+<div class="bottom">
+  <button class="submit-btn" onclick="submitAll()">채점하기</button>
+  <button class="reset-btn" onclick="resetAll()">처음부터</button>
+</div>
+
+<div class="result" id="result">
+  <div class="result-score" id="res-score"></div>
+  <div class="result-msg" id="res-msg"></div>
+  <div class="result-breakdown" id="res-breakdown"></div>
+  <button class="retry-btn" onclick="resetAll()">다시 풀기</button>
+</div>
+
+<script>
+var questions = [
+  {
+    type:'mcq', tag:'Hash Table',
+    q:'h(x) = x mod 7일 때, 키 값 50의 hash value는?',
+    opts:['1','3','5','6'], ans:0,
+    exp:'50 mod 7 = 7×7=49, 50-49=1. 정답은 1.'
+  },
+  {
+    type:'ox', tag:'Hash Table',
+    q:'Hash function은 입력 공간 X보다 출력 공간 Y가 더 크거나 같아야 한다.',
+    ans:'X',
+    exp:'아니야. Hash function은 shrinking 특성을 가져야 해 — 큰 X를 작은 Y로 압축해야 충돌이 발생해도 관리 가능해.'
+  },
+  {
+    type:'mcq', tag:'Hash Table',
+    q:'Linear probing에서 충돌 발생 시 다음 탐색 위치를 구하는 공식은? (i: 현재 인덱스, N: 테이블 크기)',
+    opts:['(i + 1) mod N','(i + i²) mod N','(i + rand()) mod N','(i - 1) mod N'], ans:0,
+    exp:'Linear probing은 +1씩 순차 탐색해. Quadratic은 +j², Random은 +rand().'
+  },
+  {
+    type:'ox', tag:'Hash Table',
+    q:'Chaining은 충돌 시 배열 내부의 다른 칸을 사용한다.',
+    ans:'X',
+    exp:'Chaining(closed addressing)은 각 슬롯에 linked list를 연결해 외부 메모리를 사용해. 배열 내부를 사용하는 건 open addressing이야.'
+  },
+  {
+    type:'mcq', tag:'Hash Table',
+    q:'Load factor α = n/b에서 n=8, b=10일 때 α 값은?',
+    opts:['0.4','0.8','1.25','2.0'], ans:1,
+    exp:'α = 8/10 = 0.8. Load factor가 1에 가까울수록 충돌 빈번해지고 성능 저하.'
+  },
+  {
+    type:'mcq', tag:'Tree',
+    q:'다음 중 트리 용어 설명이 올바른 것은?',
+    opts:['Leaf는 자식이 하나인 노드','Depth는 루트부터 해당 노드까지의 거리','Height는 루트 노드의 depth','Internal node는 자식이 없는 노드'], ans:1,
+    exp:'Depth = 루트부터의 거리 (루트는 0). Leaf = 자식 없는 노드. Height = 트리의 최대 depth.'
+  },
+  {
+    type:'ox', tag:'Tree',
+    q:'Complete binary tree이면 반드시 Perfect binary tree이기도 하다.',
+    ans:'X',
+    exp:'Complete는 마지막 레벨만 왼쪽부터 채우면 돼. Perfect는 모든 레벨이 꽉 차야 해. Complete ⊃ Perfect가 아니야.'
+  },
+  {
+    type:'mcq', tag:'Tree',
+    q:'노드가 n개인 binary tree를 array로 구현할 때, 인덱스 i의 오른쪽 자식 인덱스는?',
+    opts:['2i','2i + 1','2i + 2','(i-1) / 2'], ans:2,
+    exp:'왼쪽 자식 = 2i+1, 오른쪽 자식 = 2i+2, 부모 = (i-1)//2.'
+  },
+  {
+    type:'mcq', tag:'Tree',
+    q:'아래 트리의 In-order traversal 결과는?\n       A\n      / \\\n     B   C\n    / \\\n   D   E',
+    opts:['A B D E C','D B E A C','D E B C A','A B C D E'], ans:1,
+    exp:'In-order(LCR): D → B → E → A → C. 왼쪽 서브트리 → 루트 → 오른쪽 서브트리.'
+  },
+  {
+    type:'ox', tag:'Tree',
+    q:'Binary tree에서 노드가 n개이면 엣지(edge)는 항상 n-1개다.',
+    ans:'O',
+    exp:'루트를 제외한 모든 노드는 정확히 하나의 부모 엣지를 가져. 따라서 엣지 수 = n-1.'
+  },
+  {
+    type:'mcq', tag:'Tree',
+    q:'노드 4개짜리 binary tree의 가능한 모양 수는?',
+    opts:['4','7','14','16'], ans:2,
+    exp:'카탈란 수 C(4) = 14. C(n) = C(2n,n)/(n+1).'
+  },
+  {
+    type:'mcq', tag:'Tree',
+    q:'Level-order traversal 구현에 필요한 자료구조는?',
+    opts:['Stack','Queue','Array','Linked List'], ans:1,
+    exp:'Level-order는 Queue(FIFO)를 사용해. 노드를 dequeue하면서 자식을 enqueue하는 방식.'
+  },
+  {
+    type:'ox', tag:'Queue',
+    q:'Array 기반 circular queue에서 isEmpty() 조건은 f == r이다.',
+    ans:'O',
+    exp:'front와 rear가 같은 위치를 가리키면 큐가 비어있는 상태야. r 위치는 항상 비어있음.'
+  },
+  {
+    type:'mcq', tag:'Queue',
+    q:'크기 N인 circular queue에서 size()를 구하는 공식은?',
+    opts:['(r - f) mod N','(N - f + r) mod N','(f + r) mod N','N - r + f'], ans:1,
+    exp:'(N - f + r) mod N. wrap-around 상황도 올바르게 처리하기 위해 N을 더한 뒤 mod N.'
+  },
+  {
+    type:'ox', tag:'Queue',
+    q:'Linked list 기반 Queue에서 enqueue와 dequeue 모두 O(1)이다.',
+    ans:'O',
+    exp:'front(head)에서 dequeue, rear(tail)에서 enqueue — 둘 다 포인터 조작만 하면 되므로 O(1).'
+  },
+  {
+    type:'mcq', tag:'Queue',
+    q:'Array 기반 Queue에서 enqueue가 amortized O(1)인 이유는?',
+    opts:['항상 O(1)이기 때문','resize 시 O(n)이 발생하지만 n번의 연산에 평균 내면 O(1)이기 때문','linked list를 사용하기 때문','circular array라서'], ans:1,
+    exp:'배열이 꽉 차면 2배 resize → O(n). 하지만 이 비용을 n번 연산에 분산하면 연산 1개당 O(1)이 돼.'
+  },
+  {
+    type:'ox', tag:'Linked List',
+    q:'Singly linked list에서 tail 노드 삭제는 O(1)이다.',
+    ans:'X',
+    exp:'tail 삭제 후 새 tail(이전 노드)로 포인터를 업데이트해야 하는데, 이전 노드에 접근하려면 head부터 순회해야 해 → O(n).'
+  },
+  {
+    type:'mcq', tag:'Linked List',
+    q:'Doubly linked list에서 header/trailer dummy node를 사용하는 이유는?',
+    opts:['메모리 절약을 위해','경계 조건(빈 리스트, 맨 앞/뒤 삽입삭제)을 통일된 코드로 처리하기 위해','탐색 속도를 O(1)로 만들기 위해','노드 수를 줄이기 위해'], ans:1,
+    exp:'Dummy node가 있으면 "첫 번째 노드 앞"과 "마지막 노드 뒤"도 항상 prev/next가 존재해서 특수 케이스 없이 동일한 삽입/삭제 코드를 쓸 수 있어.'
+  },
+  {
+    type:'mcq', tag:'Linked List',
+    q:'다음 중 Linked list가 Array보다 유리한 경우는?',
+    opts:['인덱스로 빠른 랜덤 접근이 필요할 때','중간 삽입/삭제가 빈번할 때','캐시 효율이 중요할 때','메모리를 최소화해야 할 때'], ans:1,
+    exp:'Linked list는 포인터 조작만으로 O(1) 삽입/삭제가 가능해. Array는 중간 삽입/삭제 시 O(n) 이동이 필요.'
+  },
+  {
+    type:'ox', tag:'Linked List',
+    q:'Stack을 singly linked list로 구현하면 push, pop, top 모두 O(1)이다.',
+    ans:'O',
+    exp:'top = head로 두면 push는 head에 삽입, pop은 head 삭제, top은 head 참조 — 모두 O(1).'
+  }
+];
+
+var userAns = new Array(questions.length).fill(null);
+var submitted = false;
+var timerEl, timerInterval, secondsLeft = 600;
+
+function buildQuiz() {
+  var wrap = document.getElementById('quiz-wrap');
+  wrap.innerHTML = '';
+  questions.forEach(function(q, i) {
+    var card = document.createElement('div');
+    card.className = 'q-card';
+    card.innerHTML =
+      '<div class="q-header">' +
+        '<span class="q-num">' + (i+1) + ' / ' + questions.length + '</span>' +
+        '<span class="q-tag' + (q.type==='ox'?' ox':'') + '">' + q.tag + ' · ' + (q.type==='ox'?'O/X':'객관식') + '</span>' +
+      '</div>' +
+      '<div class="q-text">' + q.q.replace(/\n/g,'<br>') + '</div>';
+
+    if(q.type === 'mcq') {
+      var opts = document.createElement('div');
+      opts.className = 'opts';
+      q.opts.forEach(function(o, j) {
+        var btn = document.createElement('button');
+        btn.className = 'opt-btn';
+        btn.textContent = '① ② ③ ④'.split(' ')[j] + '  ' + o;
+        btn.onclick = (function(qi, ji) { return function() { selectMCQ(qi, ji); }; })(i, j);
+        btn.id = 'opt-' + i + '-' + j;
+        opts.appendChild(btn);
+      });
+      card.appendChild(opts);
+    } else {
+      var oxDiv = document.createElement('div');
+      oxDiv.className = 'ox-btns';
+      ['O','X'].forEach(function(v) {
+        var btn = document.createElement('button');
+        btn.className = 'ox-btn';
+        btn.textContent = v;
+        btn.onclick = (function(qi, val) { return function() { selectOX(qi, val); }; })(i, v);
+        btn.id = 'ox-' + i + '-' + v;
+        oxDiv.appendChild(btn);
+      });
+      card.appendChild(oxDiv);
+    }
+
+    var exp = document.createElement('div');
+    exp.className = 'exp';
+    exp.id = 'exp-' + i;
+    exp.textContent = q.exp;
+    card.appendChild(exp);
+
+    wrap.appendChild(card);
+  });
+  updateProgress();
+}
+
+function selectMCQ(qi, ji) {
+  if(submitted) return;
+  userAns[qi] = ji;
+  for(var j = 0; j < questions[qi].opts.length; j++) {
+    var btn = document.getElementById('opt-' + qi + '-' + j);
+    btn.className = 'opt-btn' + (j === ji ? ' selected' : '');
+  }
+  updateProgress();
+}
+
+function selectOX(qi, val) {
+  if(submitted) return;
+  userAns[qi] = val;
+  ['O','X'].forEach(function(v) {
+    var btn = document.getElementById('ox-' + qi + '-' + v);
+    btn.className = 'ox-btn' + (v === val ? ' sel-' + val : '');
+  });
+  updateProgress();
+}
+
+function updateProgress() {
+  var answered = userAns.filter(function(a){ return a !== null; }).length;
+  document.getElementById('progress').style.width = (answered / questions.length * 100) + '%';
+  document.getElementById('score-badge').textContent = answered + ' / ' + questions.length + ' 답변';
+}
+
+function submitAll() {
+  submitted = true;
+  clearInterval(timerInterval);
+  var score = 0;
+  questions.forEach(function(q, i) {
+    var correct = false;
+    if(q.type === 'mcq') {
+      correct = userAns[i] === q.ans;
+      for(var j = 0; j < q.opts.length; j++) {
+        var btn = document.getElementById('opt-' + i + '-' + j);
+        btn.disabled = true;
+        if(j === q.ans) {
+          if(userAns[i] === j) btn.className = 'opt-btn correct';
+          else btn.className = 'opt-btn reveal';
+        } else if(userAns[i] === j) {
+          btn.className = 'opt-btn wrong';
+        }
+      }
+    } else {
+      correct = userAns[i] === q.ans;
+      ['O','X'].forEach(function(v) {
+        var btn = document.getElementById('ox-' + i + '-' + v);
+        btn.disabled = true;
+        if(v === q.ans) {
+          if(userAns[i] === v) btn.className = 'ox-btn correct';
+          else btn.className = 'ox-btn correct';
+        }
+        if(userAns[i] === v && v !== q.ans) btn.className = 'ox-btn wrong';
+      });
+    }
+    if(correct) score++;
+    var exp = document.getElementById('exp-' + i);
+    exp.className = 'exp show ' + (correct ? 'ok' : 'err');
+  });
+
+  showResult(score);
+}
+
+function showResult(score) {
+  var pct = Math.round(score / questions.length * 100);
+  var res = document.getElementById('result');
+  res.className = 'result show';
+  document.getElementById('res-score').textContent = score + ' / ' + questions.length;
+  document.getElementById('res-score').style.color = pct >= 80 ? '#27500a' : pct >= 60 ? '#633806' : '#a32d2d';
+  var msg = pct === 100 ? '완벽해! 모든 개념을 마스터했어.' :
+            pct >= 80 ? '잘 했어. 틀린 문제 해설 확인해봐.' :
+            pct >= 60 ? '절반 이상 맞혔어. 헷갈린 챕터를 다시 보자.' :
+                        '기초 개념을 한 번 더 정리하고 다시 풀어봐.';
+  document.getElementById('res-msg').textContent = msg;
+
+  var bd = document.getElementById('res-breakdown');
+  bd.innerHTML = '';
+  questions.forEach(function(q, i) {
+    var correct = q.type === 'mcq' ? userAns[i] === q.ans : userAns[i] === q.ans;
+    var item = document.createElement('div');
+    item.className = 'rb-item ' + (correct ? 'ok' : 'no');
+    item.innerHTML = '<div class="rb-num">' + (i+1) + '</div><div>' + (correct ? '✓' : '✗') + '</div>';
+    bd.appendChild(item);
+  });
+
+  res.scrollIntoView({behavior:'smooth'});
+}
+
+function startTimer() {
+  secondsLeft = 600;
+  timerInterval = setInterval(function() {
+    secondsLeft--;
+    var m = Math.floor(secondsLeft / 60);
+    var s = secondsLeft % 60;
+    var el = document.getElementById('timer');
+    el.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    if(secondsLeft <= 60) el.className = 'timer warn';
+    if(secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      if(!submitted) submitAll();
+    }
+  }, 1000);
+}
+
+function resetAll() {
+  submitted = false;
+  userAns = new Array(questions.length).fill(null);
+  clearInterval(timerInterval);
+  document.getElementById('timer').className = 'timer';
+  document.getElementById('result').className = 'result';
+  buildQuiz();
+  startTimer();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+buildQuiz();
+startTimer();
+</script>
+</body>
+</html>
