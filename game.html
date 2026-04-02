@@ -3,350 +3,337 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Catch the Emoji</title>
+<title>작은월드 마인크래프트</title>
 <style>
-  :root{
-    --bg:#0f1724;
-    --panel:#0b1220;
-    --accent:#ffd166;
-    --text:#e6eef8;
+  html,body{height:100%;margin:0;overflow:hidden;font-family:Inter,system-ui,Segoe UI,Roboto,"Noto Sans KR",sans-serif;background:#87ceeb}
+  #ui{
+    position:fixed;left:12px;top:12px;color:#042;z-index:20;
+    background:rgba(255,255,255,0.85);padding:8px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.15)
   }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,"Noto Sans KR",sans-serif;background:linear-gradient(180deg,#071029 0%, #0f1724 100%);color:var(--text)}
-  .wrap{max-width:900px;margin:24px auto;padding:16px}
-  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-  h1{font-size:20px;margin:0}
-  .panel{background:rgba(255,255,255,0.03);padding:12px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
-  #game{
-    position:relative;
-    height:60vh;
-    min-height:420px;
-    overflow:hidden;
-    border-radius:12px;
-    margin-top:12px;
-    background:
-      radial-gradient(ellipse at 20% 10%, rgba(255,255,255,0.02), transparent 10%),
-      linear-gradient(180deg, rgba(255,255,255,0.02), transparent 40%),
-      var(--panel);
-  }
-  .hud{display:flex;gap:12px;align-items:center}
-  .stat{padding:8px 12px;background:rgba(255,255,255,0.02);border-radius:8px;font-weight:600}
-  #score{color:var(--accent)}
-  #lives{color:#ff6b6b}
-  #timer{color:#9be7ff}
-  .play-area{position:absolute;inset:0;pointer-events:none}
-  .item{
-    position:absolute;
-    font-size:28px;
-    pointer-events:auto;
-    user-select:none;
-    transform:translate(-50%, -50%);
-    will-change:transform;
-    text-shadow:0 2px 6px rgba(0,0,0,0.6);
-  }
-  .basket{
-    position:absolute;
-    left:50%;
-    bottom:18px;
-    transform:translateX(-50%);
-    width:110px;
-    height:48px;
-    border-radius:24px;
-    background:linear-gradient(180deg,#ffd166,#f7a400);
-    display:flex;align-items:center;justify-content:center;
-    font-size:28px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.6);
-    pointer-events:none;
-  }
-  .controls{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
-  button{background:#0b1220;color:var(--text);border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;cursor:pointer}
-  button.primary{background:var(--accent);color:#071029;font-weight:700}
-  .overlay{
-    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.6));
-    color:var(--text);font-size:20px;z-index:40;backdrop-filter:blur(4px)
-  }
-  .small{font-size:13px;opacity:0.9}
-  @media (max-width:520px){
-    .basket{width:86px;height:44px;font-size:22px}
-    .item{font-size:24px}
-  }
+  #hotbar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;display:flex;gap:8px;z-index:20}
+  .slot{width:56px;height:56px;border-radius:8px;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 6px 18px rgba(0,0,0,0.12)}
+  .slot.active{outline:3px solid #ffd166}
+  #hint{position:fixed;right:12px;top:12px;background:rgba(0,0,0,0.45);color:#fff;padding:8px;border-radius:8px;font-size:13px}
+  #canvas-container{width:100%;height:100%}
+  .small{font-size:12px;color:#333}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Catch the Emoji</h1>
-    <div class="hud">
-      <div class="stat">점수 <span id="score">0</span></div>
-      <div class="stat">목숨 <span id="lives">3</span></div>
-      <div class="stat">시간 <span id="timer">00:00</span></div>
-    </div>
-  </header>
-
-  <div id="game" class="panel" tabindex="0">
-    <div class="play-area" id="play"></div>
-    <div class="basket" id="basket">🧺</div>
-    <div id="overlay" class="overlay" style="display:none"></div>
-  </div>
-
-  <div class="controls">
-    <button id="startBtn" class="primary">게임 시작</button>
-    <button id="pauseBtn">일시정지</button>
-    <button id="restartBtn">재시작</button>
-    <div class="small">조작: 마우스/터치 이동 또는 ← → 키</div>
-  </div>
+<div id="ui">
+  <div style="font-weight:700">작은월드 마인크래프트</div>
+  <div class="small">클릭으로 포인터 고정 · WASD 이동 · 스페이스 점프</div>
+  <div style="margin-top:6px">블록: <span id="blockName">흙</span> · 점수 <span id="score">0</span></div>
 </div>
 
+<div id="hint">좌클릭: 놓기 · 우클릭: 부수기 · 숫자 1-4: 블록 선택</div>
+
+<div id="hotbar">
+  <div class="slot active" data-id="0">1<br>흙</div>
+  <div class="slot" data-id="1">2<br>돌</div>
+  <div class="slot" data-id="2">3<br>나무</div>
+  <div class="slot" data-id="3">4<br>잎</div>
+</div>
+
+<div id="canvas-container"></div>
+
+<!-- Three.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.154.0/examples/js/controls/PointerLockControls.js"></script>
+
 <script>
-(() => {
-  const play = document.getElementById('play');
-  const basket = document.getElementById('basket');
-  const scoreEl = document.getElementById('score');
-  const livesEl = document.getElementById('lives');
-  const timerEl = document.getElementById('timer');
-  const overlay = document.getElementById('overlay');
-  const startBtn = document.getElementById('startBtn');
-  const pauseBtn = document.getElementById('pauseBtn');
-  const restartBtn = document.getElementById('restartBtn');
-  const gameEl = document.getElementById('game');
+/*
+  간단한 블록 월드 구현
+  - 그리드 기반 블록(정육면체) 배치
+  - 레이캐스트로 블록 상호작용
+  - 충돌 처리(플레이어는 블록 위에 서 있음)
+  - 성능을 위해 인스턴스 메쉬 대신 개별 메시(작은 월드이므로 허용)
+*/
 
-  let width, height;
-  let basketX = 0;
-  let score = 0;
-  let lives = 3;
-  let running = false;
-  let lastTime = 0;
-  let spawnTimer = 0;
-  let spawnInterval = 1000; // ms
-  let items = [];
-  let elapsed = 0;
-  let speedMultiplier = 1;
-  const emojis = ['🍎','🍋','🍓','🍪','🍉','🍇','🍒','⭐','💎','💣'];
+const container = document.getElementById('canvas-container');
+const scoreEl = document.getElementById('score');
+const blockNameEl = document.getElementById('blockName');
+const hotbarSlots = document.querySelectorAll('.slot');
 
-  function resize(){
-    const rect = gameEl.getBoundingClientRect();
-    width = rect.width;
-    height = rect.height;
-    // center basket
-    if (!basketX) basketX = width/2;
-    updateBasket();
+let selectedBlock = 0;
+const blockTypes = [
+  {name:'흙', color:0x8b5a2b},
+  {name:'돌', color:0x7f8c8d},
+  {name:'나무', color:0x8b6b3a},
+  {name:'잎', color:0x2ecc71}
+];
+
+blockNameEl.textContent = blockTypes[selectedBlock].name;
+
+// Three.js 기본 세팅
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x87ceeb, 0.0025);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0, 6, 10);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x87ceeb);
+container.appendChild(renderer.domElement);
+
+// 빛
+const hemi = new THREE.HemisphereLight(0xffffee, 0x444455, 0.9);
+hemi.position.set(0,50,0);
+scene.add(hemi);
+const dir = new THREE.DirectionalLight(0xffffff, 0.6);
+dir.position.set(-10,20,10);
+scene.add(dir);
+
+// 바닥
+const groundGeo = new THREE.PlaneGeometry(200,200);
+const groundMat = new THREE.MeshLambertMaterial({color:0x6ab04c});
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI/2;
+ground.position.y = 0;
+scene.add(ground);
+
+// 간단한 하늘 구름 느낌
+const skyGeo = new THREE.SphereGeometry(300, 32, 32);
+const skyMat = new THREE.MeshBasicMaterial({color:0x87ceeb, side:THREE.BackSide});
+const sky = new THREE.Mesh(skyGeo, skyMat);
+scene.add(sky);
+
+// 플레이어 컨트롤
+const controls = new THREE.PointerLockControls(camera, renderer.domElement);
+document.addEventListener('click', () => {
+  if (!controls.isLocked) controls.lock();
+});
+scene.add(controls.getObject());
+
+// 이동 상태
+const move = {forward:false,back:false,left:false,right:false,jump:false};
+let velocity = new THREE.Vector3();
+let canJump = false;
+
+// 키 입력
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyW') move.forward = true;
+  if (e.code === 'KeyS') move.back = true;
+  if (e.code === 'KeyA') move.left = true;
+  if (e.code === 'KeyD') move.right = true;
+  if (e.code === 'Space') {
+    if (canJump) { velocity.y = 8; canJump = false; }
   }
-
-  function updateBasket(){
-    basket.style.left = basketX + 'px';
+  if (e.code.startsWith('Digit')) {
+    const idx = parseInt(e.code.replace('Digit','')) - 1;
+    if (idx >= 0 && idx < blockTypes.length) selectBlock(idx);
   }
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'KeyW') move.forward = false;
+  if (e.code === 'KeyS') move.back = false;
+  if (e.code === 'KeyA') move.left = false;
+  if (e.code === 'KeyD') move.right = false;
+});
 
-  function spawnItem(){
-    const x = Math.random() * (width - 40) + 20;
-    const emoji = emojis[Math.floor(Math.random()*emojis.length)];
-    const el = document.createElement('div');
-    el.className = 'item';
-    el.textContent = emoji;
-    el.style.left = x + 'px';
-    el.style.top = '-30px';
-    const speed = (80 + Math.random()*120) * speedMultiplier; // px per second
-    play.appendChild(el);
-    items.push({el,x,y:-30,speed,emoji});
-  }
+// 블록 데이터 구조: Map with key "x,y,z" -> mesh
+const blocks = new Map();
+const worldSize = 16; // 작은 월드 반경
 
-  function formatTime(ms){
-    const s = Math.floor(ms/1000);
-    const mm = String(Math.floor(s/60)).padStart(2,'0');
-    const ss = String(s%60).padStart(2,'0');
-    return mm + ':' + ss;
-  }
+// 유틸: 키 생성
+function keyOf(x,y,z){ return `${x},${y},${z}`; }
 
-  function gameOver(){
-    running = false;
-    overlay.style.display = 'flex';
-    overlay.innerHTML = `<div style="text-align:center">
-      <div style="font-size:28px;font-weight:700">게임 오버</div>
-      <div class="small" style="margin-top:8px">최종 점수 <strong>${score}</strong></div>
-      <div style="margin-top:12px"><button id="overlayRestart" class="primary">다시하기</button></div>
-    </div>`;
-    document.getElementById('overlayRestart').addEventListener('click', () => {
-      overlay.style.display='none';
-      restart();
-    });
-  }
+// 블록 생성 함수
+function createBlock(x,y,z,typeIndex){
+  const size = 1;
+  const geo = new THREE.BoxGeometry(size,size,size);
+  const mat = new THREE.MeshLambertMaterial({color:blockTypes[typeIndex].color});
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y + 0.5, z);
+  mesh.userData = {x,y,z,type:typeIndex};
+  scene.add(mesh);
+  blocks.set(keyOf(x,y,z), mesh);
+  return mesh;
+}
 
-  function update(dt){
-    // spawn logic
-    spawnTimer += dt;
-    if (spawnTimer > spawnInterval){
-      spawnTimer = 0;
-      spawnItem();
-      // gradually increase spawn rate
-      spawnInterval = Math.max(300, spawnInterval - 8);
+// 초기 지형 생성: 간단한 언덕과 나무
+for (let x=-worldSize; x<=worldSize; x++){
+  for (let z=-worldSize; z<=worldSize; z++){
+    const height = Math.floor(2 + Math.sin(x*0.3)*Math.cos(z*0.3) * 2 + Math.random()*1.2);
+    for (let y=0; y<height; y++){
+      createBlock(x,y,z,0); // 흙
     }
-
-    // update items
-    for (let i = items.length-1; i >=0; i--){
-      const it = items[i];
-      it.y += it.speed * dt/1000;
-      it.el.style.transform = `translate(-50%, -50%) translateY(${it.y}px)`;
-      // check collision with basket
-      const basketRect = basket.getBoundingClientRect();
-      const itemRect = it.el.getBoundingClientRect();
-      if (itemRect.top > basketRect.top - 8 && itemRect.left > basketRect.left - 20 && itemRect.right < basketRect.right + 20){
-        // caught
-        score += (it.emoji === '💣') ? -5 : 10;
-        if (score < 0) score = 0;
-        scoreEl.textContent = score;
-        // small effect
-        it.el.remove();
-        items.splice(i,1);
-        continue;
-      }
-      // missed
-      if (it.y > height + 40){
-        // if bomb missed, no penalty; if normal missed, lose life
-        if (it.emoji !== '💣'){
-          lives--;
-          livesEl.textContent = lives;
-          if (lives <= 0){
-            gameOver();
-            return;
-          }
+    // 가끔 돌층
+    if (Math.random() < 0.06){
+      createBlock(x, height, z, 1); // 돌
+    }
+    // 가끔 나무
+    if (Math.random() < 0.03){
+      const trunkHeight = 3 + Math.floor(Math.random()*2);
+      for (let t=0; t<trunkHeight; t++) createBlock(x, height + t, z, 2);
+      // 잎
+      for (let ox=-1; ox<=1; ox++){
+        for (let oz=-1; oz<=1; oz++){
+          createBlock(x+ox, height + trunkHeight, z+oz, 3);
         }
-        it.el.remove();
-        items.splice(i,1);
       }
     }
-
-    // difficulty scaling
-    elapsed += dt;
-    speedMultiplier = 1 + elapsed/20000; // slowly increase
-    // update timer display
-    timerEl.textContent = formatTime(elapsed);
   }
+}
 
-  function loop(ts){
-    if (!lastTime) lastTime = ts;
-    const dt = ts - lastTime;
-    lastTime = ts;
-    if (running){
-      update(dt);
+// 레이캐스터로 블록 상호작용
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let score = 0;
+
+function getIntersectedBlock(){
+  // 화면 중앙에서 레이캐스트
+  raycaster.setFromCamera({x:0,y:0}, camera);
+  const intersects = raycaster.intersectObjects(Array.from(blocks.values()));
+  return intersects.length ? intersects[0] : null;
+}
+
+// 마우스 클릭: 좌클릭 놓기, 우클릭 부수기
+renderer.domElement.addEventListener('mousedown', (e) => {
+  if (!controls.isLocked) return;
+  e.preventDefault();
+  const intersect = getIntersectedBlock();
+  if (!intersect) return;
+  const hit = intersect.object;
+  const nx = Math.round(hit.userData.x);
+  const ny = Math.round(hit.userData.y);
+  const nz = Math.round(hit.userData.z);
+  // 클릭한 면의 법선으로 새 블록 위치 계산
+  const normal = intersect.face.normal;
+  const placeX = nx + normal.x;
+  const placeY = ny + normal.y;
+  const placeZ = nz + normal.z;
+  if (e.button === 0){
+    // 놓기: 빈 공간이면
+    const k = keyOf(placeX,placeY,placeZ);
+    if (!blocks.has(k)){
+      // 제한: 월드 범위 내
+      if (Math.abs(placeX) <= worldSize && Math.abs(placeZ) <= worldSize && placeY >= 0 && placeY < 20){
+        createBlock(placeX, placeY, placeZ, selectedBlock);
+      }
     }
-    requestAnimationFrame(loop);
-  }
-
-  // Input handlers
-  function onMove(clientX){
-    const rect = gameEl.getBoundingClientRect();
-    const x = clientX - rect.left;
-    basketX = Math.max(40, Math.min(width-40, x));
-    updateBasket();
-  }
-
-  gameEl.addEventListener('mousemove', e => {
-    onMove(e.clientX);
-  });
-  gameEl.addEventListener('touchmove', e => {
-    if (e.touches && e.touches[0]) onMove(e.touches[0].clientX);
-  }, {passive:true});
-
-  // keyboard
-  let keyLeft=false, keyRight=false;
-  window.addEventListener('keydown', e => {
-    if (e.key === 'ArrowLeft') keyLeft = true;
-    if (e.key === 'ArrowRight') keyRight = true;
-  });
-  window.addEventListener('keyup', e => {
-    if (e.key === 'ArrowLeft') keyLeft = false;
-    if (e.key === 'ArrowRight') keyRight = false;
-  });
-
-  function keyboardStep(dt){
-    if (keyLeft) basketX -= 300 * dt/1000;
-    if (keyRight) basketX += 300 * dt/1000;
-    basketX = Math.max(40, Math.min(width-40, basketX));
-    updateBasket();
-  }
-
-  // small loop for keyboard movement
-  setInterval(() => {
-    if (running) keyboardStep(16);
-  }, 16);
-
-  // Controls
-  startBtn.addEventListener('click', () => {
-    if (!running) start();
-  });
-  pauseBtn.addEventListener('click', () => {
-    running = !running;
-    pauseBtn.textContent = running ? '일시정지' : '계속';
-    if (running) lastTime = performance.now();
-  });
-  restartBtn.addEventListener('click', restart);
-
-  function start(){
-    // reset if first time
-    if (!running){
-      running = true;
-      overlay.style.display = 'none';
-      lastTime = performance.now();
+  } else if (e.button === 2){
+    // 부수기
+    const k = keyOf(nx,ny,nz);
+    if (blocks.has(k)){
+      const mesh = blocks.get(k);
+      scene.remove(mesh);
+      blocks.delete(k);
+      score += 10;
+      scoreEl.textContent = score;
     }
   }
+});
 
-  function restart(){
-    // clear items
-    items.forEach(it => it.el.remove());
-    items = [];
-    score = 0;
-    lives = 3;
-    elapsed = 0;
-    spawnInterval = 1000;
-    spawnTimer = 0;
-    speedMultiplier = 1;
-    scoreEl.textContent = score;
-    livesEl.textContent = lives;
-    timerEl.textContent = '00:00';
-    running = true;
-    overlay.style.display = 'none';
-    lastTime = performance.now();
+// 우클릭 메뉴 방지
+renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+
+// 블록 선택 UI
+function selectBlock(idx){
+  selectedBlock = idx;
+  blockNameEl.textContent = blockTypes[idx].name;
+  hotbarSlots.forEach(s => s.classList.remove('active'));
+  hotbarSlots[idx].classList.add('active');
+}
+hotbarSlots.forEach(s => {
+  s.addEventListener('click', () => selectBlock(parseInt(s.dataset.id)));
+});
+
+// 충돌 검사: 플레이어 위치와 블록 충돌(간단한 AABB)
+function isStandingOn(x,y,z){
+  return blocks.has(keyOf(x, y-1, z));
+}
+
+// 애니메이션 루프
+const clock = new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+
+  // 이동 물리
+  const speed = 6;
+  const dir = new THREE.Vector3();
+  if (move.forward) dir.z -= 1;
+  if (move.back) dir.z += 1;
+  if (move.left) dir.x -= 1;
+  if (move.right) dir.x += 1;
+  dir.normalize();
+
+  // 카메라 로컬 방향으로 변환
+  const euler = new THREE.Euler(0, camera.rotation.y, 0, 'YXZ');
+  const forward = new THREE.Vector3(0,0,-1).applyEuler(euler);
+  const right = new THREE.Vector3(1,0,0).applyEuler(euler);
+  const moveVec = new THREE.Vector3();
+  moveVec.addScaledVector(forward, dir.z);
+  moveVec.addScaledVector(right, dir.x);
+  moveVec.normalize();
+
+  // 중력
+  velocity.y -= 20 * dt;
+  // 수평 속도
+  velocity.x = moveVec.x * speed;
+  velocity.z = moveVec.z * speed;
+
+  // 충돌 간단 처리: 플레이어 위치를 블록 그리드로 체크
+  const player = controls.getObject();
+  const nextPos = player.position.clone().addScaledVector(velocity, dt);
+  // 바닥 충돌: y <= 1 -> 땅
+  if (nextPos.y <= 1.6){
+    velocity.y = 0;
+    nextPos.y = 1.6;
+    canJump = true;
   }
 
-  // initial setup
-  window.addEventListener('resize', resize);
-  resize();
-  requestAnimationFrame(loop);
+  player.position.copy(nextPos);
 
-  // small polish: spawn occasional bombs
-  setInterval(() => {
-    if (!running) return;
-    if (Math.random() < 0.12) {
-      // spawn a bomb item manually
-      const x = Math.random() * (width - 40) + 20;
-      const el = document.createElement('div');
-      el.className = 'item';
-      el.textContent = '💣';
-      el.style.left = x + 'px';
-      el.style.top = '-30px';
-      const speed = (120 + Math.random()*160) * speedMultiplier;
-      play.appendChild(el);
-      items.push({el,x,y:-30,speed,emoji:'💣'});
-    }
-  }, 1500);
+  renderer.render(scene, camera);
+}
+animate();
 
-  // focus to capture keyboard on mobile when tapped
-  gameEl.addEventListener('click', () => gameEl.focus());
+// 반응형
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
 
-  // friendly tip overlay at start
-  overlay.style.display = 'flex';
-  overlay.innerHTML = `<div style="text-align:center">
-    <div style="font-size:22px;font-weight:700">Catch the Emoji</div>
-    <div class="small" style="margin-top:8px">마우스나 터치로 바구니를 움직여 이모지를 받아보세요. 시간이 지날수록 빨라집니다.</div>
-    <div style="margin-top:12px"><button id="overlayStart" class="primary">시작하기</button></div>
-  </div>`;
-  document.getElementById('overlayStart').addEventListener('click', () => {
-    overlay.style.display='none';
-    restart();
-  });
+// 간단한 도움말: 화면 중앙에 조준점
+const cross = document.createElement('div');
+cross.style.position='fixed';
+cross.style.left='50%';
+cross.style.top='50%';
+cross.style.transform='translate(-50%,-50%)';
+cross.style.width='8px';
+cross.style.height='8px';
+cross.style.borderRadius='50%';
+cross.style.background='rgba(0,0,0,0.6)';
+cross.style.zIndex='20';
+document.body.appendChild(cross);
 
-})();
+// 초기 카메라 위치를 플레이어 높이에 맞춤
+controls.getObject().position.set(0, 6, 12);
+
+// 간단한 저장/불러오기 (localStorage)
+function saveWorld(){
+  const data = [];
+  for (const [k, mesh] of blocks.entries()){
+    const [x,y,z] = k.split(',').map(Number);
+    data.push([x,y,z,mesh.userData.type]);
+  }
+  localStorage.setItem('mini_world', JSON.stringify(data));
+}
+function loadWorld(){
+  const raw = localStorage.getItem('mini_world');
+  if (!raw) return;
+  // 제거
+  for (const m of blocks.values()) scene.remove(m);
+  blocks.clear();
+  const data = JSON.parse(raw);
+  for (const [x,y,z,t] of data) createBlock(x,y,z,t);
+}
+window.addEventListener('beforeunload', saveWorld);
+loadWorld();
+
 </script>
 </body>
 </html>
-
