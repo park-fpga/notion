@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DS Quiz — Array & Stack</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c27;
+    --border: #2a2a3d;
+    --accent: #7c6af7;
+    --accent2: #f7516a;
+    --accent3: #3dd9b3;
+    --text: #e8e8f0;
+    --muted: #7070a0;
+    --correct: #3dd9b3;
+    --wrong: #f7516a;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* BG pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,106,247,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 90%, rgba(61,217,179,0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  header {
+    margin-bottom: 48px;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(124,106,247,0.12);
+    border: 1px solid rgba(124,106,247,0.3);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 300;
+  }
+
+  /* Progress */
+  .progress-bar-wrap {
+    background: var(--surface2);
+    border-radius: 99px;
+    height: 4px;
+    margin: 32px 0;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    width: 0%;
+  }
+
+  .progress-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* Section label */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Question card */
+  .q-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 28px 24px;
+    margin-bottom: 16px;
+    transition: border-color 0.3s;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .q-card:nth-child(2) { animation-delay: 0.05s; }
+  .q-card:nth-child(3) { animation-delay: 0.10s; }
+  .q-card:nth-child(4) { animation-delay: 0.15s; }
+  .q-card:nth-child(5) { animation-delay: 0.20s; }
+
+  .q-card.answered-correct { border-color: rgba(61,217,179,0.4); }
+  .q-card.answered-wrong   { border-color: rgba(247,81,106,0.4); }
+
+  .q-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    letter-spacing: 0.1em;
+  }
+
+  .q-text {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    word-break: keep-all;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: rgba(124,106,247,0.12);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #c4b8ff;
+  }
+
+  /* Options */
+  .options { display: flex; flex-direction: column; gap: 9px; }
+
+  .opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: var(--surface2);
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    font-size: 14px;
+    line-height: 1.5;
+    word-break: keep-all;
+    user-select: none;
+  }
+
+  .opt:hover:not(.disabled) {
+    border-color: var(--accent);
+    background: rgba(124,106,247,0.08);
+    transform: translateX(3px);
+  }
+
+  .opt-key {
+    font-family: var(--mono);
+    font-size: 11px;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--muted);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+
+  .opt.correct {
+    border-color: var(--correct);
+    background: rgba(61,217,179,0.08);
+  }
+  .opt.correct .opt-key {
+    background: var(--correct);
+    color: #0a0a0f;
+    border-color: var(--correct);
+    font-weight: 700;
+  }
+
+  .opt.wrong {
+    border-color: var(--wrong);
+    background: rgba(247,81,106,0.08);
+  }
+  .opt.wrong .opt-key {
+    background: var(--wrong);
+    color: #fff;
+    border-color: var(--wrong);
+  }
+
+  .opt.disabled { cursor: default; }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 14px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    display: none;
+    word-break: keep-all;
+    border-left: 3px solid;
+    animation: fadeIn 0.25s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .feedback.correct {
+    display: block;
+    background: rgba(61,217,179,0.07);
+    border-color: var(--correct);
+    color: var(--correct);
+  }
+  .feedback.wrong {
+    display: block;
+    background: rgba(247,81,106,0.07);
+    border-color: var(--wrong);
+    color: #ff8fa0;
+  }
+  .feedback strong { font-weight: 700; }
+
+  /* Short answer */
+  .short-wrap { display: flex; gap: 10px; margin-top: 4px; }
+
+  .short-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .short-input:focus { border-color: var(--accent); }
+  .short-input.correct { border-color: var(--correct); }
+  .short-input.wrong   { border-color: var(--wrong); }
+
+  .short-btn {
+    padding: 11px 20px;
+    background: rgba(124,106,247,0.15);
+    border: 1px solid rgba(124,106,247,0.4);
+    border-radius: 8px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .short-btn:hover:not(:disabled) {
+    background: rgba(124,106,247,0.25);
+    transform: translateY(-1px);
+  }
+  .short-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* Score panel */
+  .score-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-top: 40px;
+    display: none;
+    animation: fadeUp 0.5s ease;
+  }
+  .score-panel.visible { display: block; }
+
+  .score-big {
+    font-family: var(--mono);
+    font-size: 56px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .score-label {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .score-msg {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .retry-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--accent), #9b84ff);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 13px 28px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .retry-btn:hover { opacity: 0.85; transform: translateY(-2px); }
+
+  /* Divider between sections */
+  .section-divider {
+    margin: 36px 0 28px;
+  }
+
+  @media (max-width: 500px) {
+    .container { padding: 32px 16px 60px; }
+    .q-card { padding: 20px 18px; }
+    .score-big { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="tag">Data Structures</div>
+    <h1>Array & <span>Stack</span><br>개념 확인 퀴즈</h1>
+    <p class="subtitle">강의 내용을 제대로 이해했는지 확인해보자</p>
+  </header>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-label" id="progressLabel">0 / 12 완료</div>
+
+  <!-- SECTION 1 -->
+  <div class="section-divider">
+    <div class="section-label">Part 1 — Array-Based Sequences</div>
+  </div>
+
+  <!-- Q1 -->
+  <div class="q-card" id="q1">
+    <div class="q-num">Q01</div>
+    <div class="q-text">Python의 <code>list</code>는 내부적으로 어떤 방식으로 데이터를 저장하는가?</div>
+    <div class="options">
+      <div class="opt" onclick="answer(this,'q1','A')"><span class="opt-key">A</span><span>값(value) 자체를 배열에 직접 저장한다</span></div>
+      <div class="opt" onclick="answer(this,'q1','B')"><span class="opt-key">B</span><span>객체에 대한 참조(reference)를 배열에 저장한다</span></div>
+      <div class="opt" onclick="answer(this,'q1','C')"><span class="opt-key">C</span><span>연결 리스트(Linked List) 방식으로 저장한다</span></div>
+      <div class="opt" onclick="answer(this,'q1','D')"><span class="opt-key">D</span><span>타입에 따라 compact 또는 referential 방식을 자동 선택한다</span></div>
+    </div>
+    <div class="feedback" id="fb-q1"></div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="q-card" id="q2">
+    <div class="q-num">Q02</div>
+    <div class="q-text"><code>from array import array</code>로 만든 compact array와 Python <code>list</code>의 가장 큰 차이점은?</div>
+    <div class="options">
+      <div class="opt" onclick="answer(this,'q2','A')"><span class="opt-key">A</span><span>compact array는 인덱스 접근이 불가능하다</span></div>
+      <div class="opt" onclick="answer(this,'q2','B')"><span class="opt-key">B</span><span>compact array는 단일 타입만 저장하고, 값을 메모리에 직접 빽빽하게 저장하므로 메모리 효율이 높다</span></div>
+      <div class="opt" onclick="answer(this,'q2','C')"><span class="opt-key">C</span><span>compact array는 크기가 고정되어 있어 동적으로 늘어나지 않는다</span></div>
+      <div class="opt" onclick="answer(this,'q2','D')"><span class="opt-key">D</span><span>list는 숫자 타입만 저장할 수 있다</span></div>
+    </div>
+    <div class="feedback" id="fb-q2"></div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="q-card" id="q3">
+    <div class="q-num">Q03</div>
+    <div class="q-text">아래 코드 실행 후 변수 <code>s</code>가 가리키는 메모리 주소는 어떻게 되는가?<br><br><code>s = 'data'</code><br><code>s = s + 'e'</code></div>
+    <div class="options">
+      <div class="opt" onclick="answer(this,'q3','A')"><span class="opt-key">A</span><span>기존 'data' 객체의 내부가 'datae'로 수정된다 (주소 동일)</span></div>
+      <div class="opt" onclick="answer(this,'q3','B')"><span class="opt-key">B</span><span>새로운 'datae' 객체가 만들어지고, s는 새 주소를 가리킨다</span></div>
+      <div class="opt" onclick="answer(this,'q3','C')"><span class="opt-key">C</span><span>s는 'data'와 'e' 두 객체를 동시에 가리킨다</span></div>
+      <div class="opt" onclick="answer(this,'q3','D')"><span class="opt-key">D</span><span>에러가 발생한다</span></div>
+    </div>
+    <div class="feedback" id="fb-q3"></div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="q-card" id="q4">
+    <div class="q-num">Q04</div>
+    <div class="q-text">Dynamic Array에서 배열이 꽉 찼을 때 크기를 <strong>2배(Doubling)</strong>로 늘리는 전략을 쓰면, n번의 <code>append</code>에 대한 amortized 시간복잡도는?</div>
+    <div class="options">
+      <div class="opt" onclick="answer(this,'q4','A')"><span class="opt-key">A</span><span>O(n²)</span></div>
+      <div class="opt" onclick="answer(this,'q4','B')"><span class="opt-key">B</span><span>O(n)</span></div>
+      <div class="opt" onclick="answer(this,'q4','C')"><span class="opt-key">C</span><span>O(1)</span></div>
+      <div class="opt" onclick="answer(this,'q4','D')"><span class="opt-key">D</span><span>O(log n)</span></div>
+    </div>
+    <div class="feedback" id="fb-q4"></div>
+  </div>
+
+  <!-- Q5 short -->
+  <div class="q-card" id="q5">
+    <div class="q-num">Q05</div>
+    <div class="q-text">크기를 매번 상수 c만큼만 늘리는 <strong>Incremental 전략</strong>에서 n번 <code>append</code>의 amortized 시간복잡도는? (예: O(1) 형식으로 입력)</div>
+    <div class="short-wrap">
+      <input class="short-input" id="inp-q5" type="text" placeholder="O( )" onkeydown="if(event.key==='Enter')submitShort('q5')">
+      <button class="short-btn" id="btn-q5" onclick="submitShort('q5')">제출</button>
+    </div>
+    <div class="feedback" id="fb-q5"></div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="q-card" id="q6">
+    <div class="q-num">Q06</div>
+    <div class="q-text"><code>list.insert(k, x)</code>의 시간복잡도가 <code>O(n-k)</code>인 이유로 가장 올바른 것은?</div>
+    <div class="options">
+      <div class="opt" onclick="answer(this,'q6','A')"><span class="opt-key">A</span><span>k번째 원소를 찾기 위해 처음부터 순차 탐색해야 하므로</span></div>
+      <div class="opt" onclick="answer(this,'q6','B')"><span class="opt-key">B</span><span>k번째 이후의 원소들을 모두 한 칸씩 뒤로 밀어야 하므로</span></div>
+      <div class="opt" onclick="answer(this,'q6','C')"><span class="opt-key">C</span><span>배열 전체를 새로 복사해야 하므로</span></div>
+      <div class="opt" onclick="answer(this,'q6','D')"><span class="opt-key">D</span><span>삽입 위치의 앞 원소들을 앞으로 당겨야 하므로</span></div>
+    </div>
+    <div class="feedback" id="fb-q6"></div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section-divider">
+    <div class="section-label">Part 2 — Stack</div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="q-card" id="q7">
+    <div class="q-num">Q07</div>
+    <div class="q-text">Stack의 특성을 가장 잘 설명하는 것은?</div>
+    <div class="options">
+      <div class="opt" onclick="answer(this,'q7','A')"><span class="opt-key">A</span><span>FIFO — 먼저 넣은 것이 먼저 나온다</span></div>
+      <div class="opt" onclick="answer(this,'q7','B')"><span class="opt-key">B</span><span>LIFO — 마지막에 넣은 것이 먼저 나온다</span></div>
+      <div class="opt" onclick="answer(this,'q7','C')"><span class="opt-key">C</span><span>임의의 인덱스에 O(1)로 접근 가능하다</span></div>
+      <div class="opt" onclick="answer(this,'q7','D')"><span class="opt-key">D</span><span>삽입과 삭제가 양쪽 끝에서 모두 가능하다</span></div>
+    </div>
+    <div class="feedback" id="fb-q7"></div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="q-card" id="q8">
+    <div class="q-num">Q08</div>
+    <div class="q-text"><code>top()</code>과 <code>pop()</code>의 차이점은?</div>
+    <div class="options">
+      <div class="opt" onclick="answer(this,'q8','A')"><span class="opt-key">A</span><span>top()은 원소를 제거하고 반환하고, pop()은 제거 없이 반환한다</span></div>
+      <div class="opt" onclick="answer(this,'q8','B')"><span class="opt-key">B</span><span>top()은 제거 없이 마지막 원소를 반환하고, pop()은 제거하며 반환한다</span></div>
+      <div class="opt" onclick="answer(this,'q8','C')"><span class="opt-key">C</span><span>둘 다 원소를 제거하지만 반환값이 다르다</span></div>
+      <div class="opt" onclick="answer(this,'q8','D')"><span class="opt-key">D</span><span>top()은 첫 번째 원소, pop()은 마지막 원소를 반환한다</span></div>
+    </div>
+    <div class="feedback" id="fb-q8"></div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="q-card" id="q9">
+    <div class="q-num">Q09</div>
+    <div class="q-text">Array-based Stack에서 <code>push</code>와 <code>pop</code>이 amortized O(1)인 이유는?</div>
+    <div class="options">
+      <div class="opt" onclick="answer(this,'q9','A')"><span class="opt-key">A</span><span>연결 리스트 기반이라 포인터만 바꾸면 되므로</span></div>
+      <div class="opt" onclick="answer(this,'q9','B')"><span class="opt-key">B</span><span>배열이 절대 꽉 차지 않도록 미리 충분히 할당하므로</span></div>
+      <div class="opt" onclick="answer(this,'q9','C')"><span class="opt-key">C</span><span>평소엔 O(1)이지만 배열 확장 시 O(n) 복사가 발생하는데, 2배 확장 전략 덕분에 평균 O(1)이 되므로</span></div>
+      <div class="opt" onclick="answer(this,'q9','D')"><span class="opt-key">D</span><span>push, pop은 항상 정확히 O(1)이고 확장이 일어나지 않으므로</span></div>
+    </div>
+    <div class="feedback" id="fb-q9"></div>
+  </div>
+
+  <!-- Q10 short -->
+  <div class="q-card" id="q10">
+    <div class="q-num">Q10</div>
+    <div class="q-text">괄호 매칭 알고리즘에서 <code>)</code> 를 만났을 때, 스택이 비어있으면 어떤 값을 반환하는가?</div>
+    <div class="short-wrap">
+      <input class="short-input" id="inp-q10" type="text" placeholder="true / false" onkeydown="if(event.key==='Enter')submitShort('q10')">
+      <button class="short-btn" id="btn-q10" onclick="submitShort('q10')">제출</button>
+    </div>
+    <div class="feedback" id="fb-q10"></div>
+  </div>
+
+  <!-- Q11 -->
+  <div class="q-card" id="q11">
+    <div class="q-num">Q11</div>
+    <div class="q-text">다음 중 올바른 괄호 문자열은?</div>
+    <div class="options">
+      <div class="opt" onclick="answer(this,'q11','A')"><span class="opt-key">A</span><span><code>({[ ]})</code></span></div>
+      <div class="opt" onclick="answer(this,'q11','B')"><span class="opt-key">B</span><span><code>({[ ])</code></span></div>
+      <div class="opt" onclick="answer(this,'q11','C')"><span class="opt-key">C</span><span><code>)(</code></span></div>
+      <div class="opt" onclick="answer(this,'q11','D')"><span class="opt-key">D</span><span><code>(()</code></span></div>
+    </div>
+    <div class="feedback" id="fb-q11"></div>
+  </div>
+
+  <!-- Q12 -->
+  <div class="q-card" id="q12">
+    <div class="q-num">Q12</div>
+    <div class="q-text">스택을 이용해 데이터를 역순으로 출력하려면?</div>
+    <div class="options">
+      <div class="opt" onclick="answer(this,'q12','A')"><span class="opt-key">A</span><span>데이터를 모두 push한 뒤, pop을 반복한다</span></div>
+      <div class="opt" onclick="answer(this,'q12','B')"><span class="opt-key">B</span><span>데이터를 모두 pop한 뒤, push를 반복한다</span></div>
+      <div class="opt" onclick="answer(this,'q12','C')"><span class="opt-key">C</span><span>top()을 반복 호출한다</span></div>
+      <div class="opt" onclick="answer(this,'q12','D')"><span class="opt-key">D</span><span>역순으로 push한다</span></div>
+    </div>
+    <div class="feedback" id="fb-q12"></div>
+  </div>
+
+  <!-- Score -->
+  <div class="score-panel" id="scorePanel">
+    <div class="score-big" id="scoreBig">0</div>
+    <div class="score-label">/ 12 정답</div>
+    <div class="score-msg" id="scoreMsg"></div>
+    <button class="retry-btn" onclick="retry()">다시 풀기</button>
+  </div>
+
+</div>
+
+<script>
+  const ANSWERS = {
+    q1:  { correct: 'B', fb: { correct: '맞아! list는 Referential Array — 객체의 참조(주소)를 저장하기 때문에 타입이 달라도 모두 담을 수 있어.', wrong: '아니야. list는 값을 직접 저장하는 게 아니라, 각 객체를 가리키는 참조(주소)를 배열에 저장해.' }},
+    q2:  { correct: 'B', fb: { correct: '정확해! compact array는 단일 타입 + 값 직접 저장이라 셀 크기가 균일하고 메모리 효율이 높아.', wrong: '틀렸어. compact array의 핵심은 "단일 타입 값을 메모리에 직접 저장"해서 list보다 메모리 효율이 좋다는 점이야.' }},
+    q3:  { correct: 'B', fb: { correct: '맞아! str는 immutable이라 기존 객체는 절대 변경되지 않고, 새 객체가 생성되어 s가 거기를 가리켜.', wrong: '틀렸어. str는 immutable이야. 기존 \'data\' 객체를 수정하는 게 아니라, 새로운 \'datae\' 객체가 만들어지고 s는 새 주소를 가리켜.' }},
+    q4:  { correct: 'C', fb: { correct: '정확해! Doubling 전략은 n번 append의 총 비용이 O(n)이라 amortized O(1)이야.', wrong: '틀렸어. Doubling은 n번 append 총 비용이 O(n)이니까 amortized 하면 O(1)이야. O(n)은 Incremental 전략이야.' }},
+    q5:  { correct: 'o(n)', alternatives: ['O(n)', 'o( n )'], fb: { correct: 'O(n) 맞아! Incremental은 n/c번 복사, 각 복사 비용이 점점 커져서 총 O(n²), amortized는 O(n)이야.', wrong: '틀렸어. Incremental 전략은 총 비용이 O(n²)이고, amortized 하면 O(n)이야. Doubling(O(1))과 비교해서 훨씬 비효율적이지.' }},
+    q6:  { correct: 'B', fb: { correct: '맞아! 배열은 연속 메모리라서 중간에 끼워넣으려면 그 뒤 원소들을 전부 한 칸씩 오른쪽으로 밀어야 해.', wrong: '틀렸어. 인덱스 접근은 O(1)이야. insert의 비용은 k번째 이후 원소들을 한 칸씩 오른쪽으로 shift해야 하는 데서 나와.' }},
+    q7:  { correct: 'B', fb: { correct: '맞아! LIFO — Last-In, First-Out. 마지막에 들어온 게 먼저 나가.', wrong: '틀렸어. Stack은 LIFO야. FIFO는 Queue의 특성이야.' }},
+    q8:  { correct: 'B', fb: { correct: '정확해! top()은 peek — 제거 없이 확인만. pop()은 제거 + 반환.', wrong: '틀렸어. top()은 원소를 제거하지 않고 반환하는 "peek" 연산이고, pop()이 원소를 제거하며 반환해.' }},
+    q9:  { correct: 'C', fb: { correct: '완벽해! 평소엔 O(1), 가끔 배열 확장 시 O(n)이 발생하지만 2배 확장으로 비용을 분산하면 amortized O(1)이야.', wrong: '틀렸어. Array-based Stack은 배열이 꽉 찰 때 확장+복사(O(n))가 발생해. 하지만 2배 확장 전략 덕분에 이 비용이 드물어서 amortized O(1)이 돼.' }},
+    q10: { correct: 'false', alternatives: ['False', 'FALSE'], fb: { correct: '맞아! 닫는 괄호가 왔는데 스택이 비어있으면 매칭할 여는 괄호가 없다는 뜻이라 즉시 false를 반환해.', wrong: '틀렸어. 닫는 괄호가 왔을 때 스택이 비어있으면 매칭할 괄호가 없는 거야 → false를 반환해.' }},
+    q11: { correct: 'A', fb: { correct: '맞아! ({[ ]}) — 안에서부터 올바르게 매칭돼. B는 { }가 교차해서 틀리고, C는 닫는 괄호가 먼저 와서 틀려.', wrong: '틀렸어. A번 ({[ ]})가 정답이야. 안쪽부터 순서대로 매칭되면 스택에서 올바르게 pop돼.' }},
+    q12: { correct: 'A', fb: { correct: '정확해! 순서대로 push하면 스택 특성상 pop할 때 역순으로 나와.', wrong: '틀렸어. 데이터를 순서대로 push한 뒤 pop을 반복하면, LIFO 특성 때문에 자동으로 역순으로 나와.' }},
+  };
+
+  let answered = new Set();
+  let correctCount = 0;
+
+  function answer(el, qid, selected) {
+    if (answered.has(qid)) return;
+    answered.add(qid);
+    correctCount += (selected === ANSWERS[qid].correct) ? 1 : 0;
+
+    const card = document.getElementById(qid);
+    const opts = card.querySelectorAll('.opt');
+    opts.forEach(o => o.classList.add('disabled'));
+
+    const keys = ['A','B','C','D'];
+    opts.forEach((o, i) => {
+      if (keys[i] === ANSWERS[qid].correct) o.classList.add('correct');
+      else if (keys[i] === selected && selected !== ANSWERS[qid].correct) o.classList.add('wrong');
+    });
+
+    const fb = document.getElementById('fb-' + qid);
+    const isCorrect = selected === ANSWERS[qid].correct;
+    fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+    fb.innerHTML = (isCorrect ? '✓ ' : '✗ ') + ANSWERS[qid].fb[isCorrect ? 'correct' : 'wrong'];
+    card.classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+
+    updateProgress();
+    checkDone();
+  }
+
+  function submitShort(qid) {
+    if (answered.has(qid)) return;
+    const inp = document.getElementById('inp-' + qid);
+    const btn = document.getElementById('btn-' + qid);
+    const val = inp.value.trim();
+    if (!val) return;
+
+    answered.add(qid);
+    btn.disabled = true;
+    inp.disabled = true;
+
+    const ans = ANSWERS[qid];
+    const norm = val.toLowerCase().replace(/\s/g,'');
+    const normCorrect = ans.correct.toLowerCase().replace(/\s/g,'');
+    const alts = (ans.alternatives || []).map(a => a.toLowerCase().replace(/\s/g,''));
+    const isCorrect = norm === normCorrect || alts.includes(norm);
+
+    correctCount += isCorrect ? 1 : 0;
+    inp.classList.add(isCorrect ? 'correct' : 'wrong');
+
+    const fb = document.getElementById('fb-' + qid);
+    fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+    fb.innerHTML = (isCorrect ? '✓ ' : '✗ ') + ans.fb[isCorrect ? 'correct' : 'wrong'];
+
+    document.getElementById(qid).classList.add(isCorrect ? 'answered-correct' : 'answered-wrong');
+    updateProgress();
+    checkDone();
+  }
+
+  function updateProgress() {
+    const total = 12;
+    const done = answered.size;
+    document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+    document.getElementById('progressLabel').textContent = done + ' / ' + total + ' 완료';
+  }
+
+  function checkDone() {
+    if (answered.size < 12) return;
+    const panel = document.getElementById('scorePanel');
+    panel.classList.add('visible');
+    document.getElementById('scoreBig').textContent = correctCount;
+
+    const msgs = [
+      [12, '🏆 완벽해! 모든 개념을 정확히 이해하고 있어.'],
+      [10, '🎯 거의 완벽해. 틀린 문제만 다시 확인해봐.'],
+      [8,  '📚 대부분 이해했어. 헷갈리는 부분은 강의 노트 다시 보자.'],
+      [6,  '🔄 절반 이상 맞았어. 틀린 문제들 피드백 꼭 읽어봐.'],
+      [0,  '💪 다시 한번 강의 내용을 훑어보고 재도전해봐!'],
+    ];
+    const msg = msgs.find(([min]) => correctCount >= min);
+    document.getElementById('scoreMsg').textContent = msg[1];
+
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function retry() {
+    answered.clear();
+    correctCount = 0;
+    updateProgress();
+
+    document.querySelectorAll('.q-card').forEach(card => {
+      card.classList.remove('answered-correct', 'answered-wrong');
+      card.querySelectorAll('.opt').forEach(o => {
+        o.classList.remove('correct', 'wrong', 'disabled');
+      });
+      const fb = card.querySelector('.feedback');
+      if (fb) { fb.className = 'feedback'; fb.innerHTML = ''; }
+      const inp = card.querySelector('.short-input');
+      if (inp) { inp.value = ''; inp.disabled = false; inp.className = 'short-input'; }
+      const btn = card.querySelector('.short-btn');
+      if (btn) btn.disabled = false;
+    });
+
+    document.getElementById('scorePanel').classList.remove('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
