@@ -1,0 +1,161 @@
+
+<style>
+  body { margin: 0; }
+  .wrap { padding: 1rem 0.5rem; font-size: 14px; color: var(--color-text-primary); line-height: 1.7; }
+  .quiz-title { font-size: 17px; font-weight: 500; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1.5px solid var(--color-border-primary); }
+  .q-block { margin-bottom: 1.6rem; }
+  .q-num { font-weight: 500; margin-bottom: 0.5rem; }
+  .options label { display: block; margin: 5px 0; cursor: pointer; }
+  .options input { margin-right: 8px; }
+  .blank-input { border: none; border-bottom: 1.5px solid var(--color-border-primary); background: transparent; color: var(--color-text-primary); font-size: 14px; width: 120px; outline: none; padding: 2px 4px; }
+  .blank-input:focus { border-bottom-color: var(--color-text-info); }
+  .check-btn { margin-top: 1.2rem; padding: 8px 24px; background: var(--color-background-secondary); border: 1px solid var(--color-border-primary); border-radius: 8px; font-size: 14px; color: var(--color-text-primary); cursor: pointer; }
+  .check-btn:hover { background: var(--color-background-tertiary); }
+  .feedback { margin-top: 1rem; padding: 10px 14px; border-radius: 8px; font-size: 13px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--color-background-success); color: var(--color-text-success); }
+  .feedback.wrong { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .score-box { margin-top: 1.4rem; padding: 12px 16px; border-radius: 10px; background: var(--color-background-secondary); border: 1px solid var(--color-border-secondary); display: none; font-size: 14px; }
+  .score-box.show { display: block; }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 99px; background: var(--color-background-info); color: var(--color-text-info); margin-left: 8px; vertical-align: middle; }
+  code { font-family: var(--font-mono); background: var(--color-background-tertiary); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .divider { border: none; border-top: 1px solid var(--color-border-tertiary); margin: 1.4rem 0; }
+</style>
+
+<div class="wrap">
+  <div class="quiz-title">Quiz: Queue &amp; Linked List</div>
+
+  <!-- Q1 -->
+  <div class="q-block" id="q1">
+    <div class="q-num">1) Queue를 array로 구현할 때, <code>dequeue()</code> 후 원소 수가 전체 크기의 1/4 미만이 되면 array 크기를 절반으로 줄인다. 이때 <code>dequeue()</code>의 amortized time complexity는? <span class="tag">객관식</span></div>
+    <div class="options">
+      <label><input type="radio" name="q1" value="a"> O(1)</label>
+      <label><input type="radio" name="q1" value="b"> O(log n)</label>
+      <label><input type="radio" name="q1" value="c"> O(n)</label>
+      <label><input type="radio" name="q1" value="d"> O(n²)</label>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Q2 -->
+  <div class="q-block" id="q2">
+    <div class="q-num">2) Singly linked list에서 임의 위치의 노드를 <strong>삭제</strong>할 때, 삭제할 노드의 포인터를 이미 알고 있어도 O(1)이 불가능한 이유는? <span class="tag">객관식</span></div>
+    <div class="options">
+      <label><input type="radio" name="q2" value="a"> 메모리를 해제하는 데 O(n)이 걸리기 때문</label>
+      <label><input type="radio" name="q2" value="b"> 이전(prev) 노드의 포인터를 업데이트해야 하는데, 이전 노드를 찾으려면 head부터 순회해야 하기 때문</label>
+      <label><input type="radio" name="q2" value="c"> 삭제 후 뒤 노드들을 앞으로 shift해야 하기 때문</label>
+      <label><input type="radio" name="q2" value="d"> linked list는 삭제 연산을 지원하지 않기 때문</label>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Q3 -->
+  <div class="q-block" id="q3">
+    <div class="q-num">3) Stack 2개(<code>s1</code>, <code>s2</code>)로 Queue를 구현할 때, <code>enqueue()</code>는 s1에 push한다. <code>dequeue()</code> 시 s2가 비어있으면 s1의 원소를 전부 s2로 옮긴 후 s2에서 pop한다. n번의 연산 후 <code>dequeue()</code>의 amortized time complexity는? <span class="tag">객관식</span></div>
+    <div class="options">
+      <label><input type="radio" name="q3" value="a"> O(n)</label>
+      <label><input type="radio" name="q3" value="b"> O(log n)</label>
+      <label><input type="radio" name="q3" value="c"> O(1)</label>
+      <label><input type="radio" name="q3" value="d"> O(n²)</label>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Q4 -->
+  <div class="q-block" id="q4">
+    <div class="q-num">4) 다음 빈칸을 채우시오. <span class="tag">단답형</span></div>
+    <p>
+      Array는 임의 위치 접근이 <input class="blank-input" id="b4a" placeholder="O(?)">이고,<br>
+      Linked list는 임의 위치 접근이 <input class="blank-input" id="b4b" placeholder="O(?)">이다.<br>
+      반면 맨 앞 삽입/삭제는 Array가 <input class="blank-input" id="b4c" placeholder="O(?)">이고,<br>
+      Linked list가 <input class="blank-input" id="b4d" placeholder="O(?)">이다.
+    </p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Q5 -->
+  <div class="q-block" id="q5">
+    <div class="q-num">5) Doubly linked list로 Queue를 구현할 때, <code>enqueue()</code>와 <code>dequeue()</code>의 시간복잡도는? <span class="tag">객관식</span></div>
+    <div class="options">
+      <label><input type="radio" name="q5" value="a"> enqueue O(n), dequeue O(1)</label>
+      <label><input type="radio" name="q5" value="b"> enqueue O(1), dequeue O(n)</label>
+      <label><input type="radio" name="q5" value="c"> enqueue O(1), dequeue O(1)</label>
+      <label><input type="radio" name="q5" value="d"> enqueue O(n), dequeue O(n)</label>
+    </div>
+  </div>
+
+  <button class="check-btn" onclick="checkAll()">채점하기</button>
+
+  <div class="feedback" id="fb1"></div>
+  <div class="feedback" id="fb2"></div>
+  <div class="feedback" id="fb3"></div>
+  <div class="feedback" id="fb4"></div>
+  <div class="feedback" id="fb5"></div>
+  <div class="score-box" id="scorebox"></div>
+</div>
+
+<script>
+const answers = {
+  q1: { correct: 'a', exp: 'resize는 n/4번에 1번꼴로 발생해요. O(n) 비용을 n/4번으로 나누면 1번당 O(4) = O(1)이에요.' },
+  q2: { correct: 'b', exp: 'singly linked list는 prev 포인터가 없어서 이전 노드를 찾으려면 head부터 순회해야 해요. doubly linked list라면 O(1) 삭제가 가능해요.' },
+  q3: { correct: 'c', exp: '각 원소는 s1→s2 이동을 최대 1번씩만 겪어요. n번 연산에 총 O(n) 이동 비용 → 1번당 amortized O(1)이에요.' },
+  q5: { correct: 'c', exp: 'head/tail 포인터를 유지하면 enqueue(tail에 추가)와 dequeue(head에서 제거) 모두 O(1)이에요.' }
+};
+
+function checkAll() {
+  let score = 0;
+  let total = 5;
+
+  // Q1~Q3, Q5 (객관식)
+  ['q1','q2','q3','q5'].forEach((q, i) => {
+    const sel = document.querySelector(`input[name="${q}"]:checked`);
+    const fb = document.getElementById(`fb${q.slice(1)}`);
+    fb.classList.add('show');
+    if (!sel) {
+      fb.className = 'feedback show wrong';
+      fb.textContent = `Q${q.slice(1)}) 답을 선택해주세요.`;
+      return;
+    }
+    if (sel.value === answers[q].correct) {
+      score++;
+      fb.className = 'feedback show correct';
+      fb.textContent = `Q${q.slice(1)}) ✓ 정답! — ${answers[q].exp}`;
+    } else {
+      fb.className = 'feedback show wrong';
+      fb.textContent = `Q${q.slice(1)}) ✗ 오답. 정답: ${answers[q].correct.toUpperCase()} — ${answers[q].exp}`;
+    }
+  });
+
+  // Q4 (단답형)
+  const b4a = document.getElementById('b4a').value.trim().replace(/\s/g,'').toLowerCase();
+  const b4b = document.getElementById('b4b').value.trim().replace(/\s/g,'').toLowerCase();
+  const b4c = document.getElementById('b4c').value.trim().replace(/\s/g,'').toLowerCase();
+  const b4d = document.getElementById('b4d').value.trim().replace(/\s/g,'').toLowerCase();
+  const fb4 = document.getElementById('fb4');
+  fb4.classList.add('show');
+  const ok4a = b4a.includes('1') || b4a === 'o(1)';
+  const ok4b = b4b.includes('n') || b4b === 'o(n)';
+  const ok4c = b4c.includes('n') || b4c === 'o(n)';
+  const ok4d = b4d.includes('1') || b4d === 'o(1)';
+  if (ok4a && ok4b && ok4c && ok4d) {
+    score++;
+    fb4.className = 'feedback show correct';
+    fb4.textContent = 'Q4) ✓ 정답! Array O(1) 접근, Linked list O(n) 접근 / 맨 앞 삽입삭제는 반대예요.';
+  } else {
+    fb4.className = 'feedback show wrong';
+    fb4.textContent = 'Q4) ✗ 오답. 정답: O(1) / O(n) / O(n) / O(1) — Array는 index로 바로 접근하지만 앞 삽입/삭제 시 shift가 필요해요.';
+  }
+
+  const sb = document.getElementById('scorebox');
+  sb.classList.add('show');
+  sb.innerHTML = `<strong>총점: ${score} / ${total}</strong><br>${
+    score === 5 ? '완벽해요! 🎉' :
+    score >= 3 ? '잘 이해하고 있어요. 틀린 문제 다시 확인해봐요.' :
+    '개념을 다시 정리해봐요. 위의 해설을 참고하세요!'
+  }`;
+}
+</script>
