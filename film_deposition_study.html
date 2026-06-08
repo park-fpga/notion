@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 7. Film Deposition — 학습 정리</title>
+<style>
+  :root{
+    --bg:#0f1220; --panel:#171a2b; --panel2:#1e2236; --ink:#e8ebf5; --muted:#9aa3c0;
+    --acc:#5b8cff; --acc2:#36d0a0; --warn:#ffb454; --danger:#ff6b6b; --line:#2a2f48;
+    --chip:#252a42;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:linear-gradient(180deg,#0c0f1c,#0f1220);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    line-height:1.65;}
+  a{color:var(--acc);text-decoration:none}
+  .wrap{display:flex;min-height:100vh}
+  /* Sidebar */
+  nav.side{width:280px;flex:0 0 280px;background:#0b0e1a;border-right:1px solid var(--line);
+    position:sticky;top:0;height:100vh;overflow-y:auto;padding:18px 14px}
+  nav.side h1{font-size:16px;margin:0 0 4px;color:#fff}
+  nav.side .sub{color:var(--muted);font-size:12px;margin-bottom:14px}
+  nav.side a{display:block;color:var(--muted);padding:7px 10px;border-radius:8px;font-size:13.5px;margin:2px 0}
+  nav.side a:hover{background:var(--chip);color:#fff}
+  nav.side a.mini{padding-left:24px;font-size:12.5px;opacity:.85}
+  .searchbox{width:100%;padding:9px 11px;border-radius:9px;border:1px solid var(--line);
+    background:#10131f;color:var(--ink);margin-bottom:12px;font-size:13px}
+  /* Main */
+  main{flex:1;min-width:0;padding:30px 38px 90px;max-width:1100px}
+  header.top{margin-bottom:18px}
+  header.top h2{font-size:30px;margin:0 0 6px;letter-spacing:-.5px}
+  header.top p{color:var(--muted);margin:0}
+  .progress-wrap{margin:14px 0 0;background:#10131f;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--muted)}
+  .bar{height:8px;background:#0b0e1a;border-radius:6px;overflow:hidden;margin-top:6px}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
+  /* Section */
+  section{margin:26px 0;background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .sec-head{display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;user-select:none;
+    background:linear-gradient(90deg,#1b1f33,#171a2b)}
+  .sec-head .num{flex:0 0 34px;height:34px;border-radius:10px;background:var(--acc);color:#001;
+    display:grid;place-items:center;font-weight:800;font-size:15px}
+  .sec-head h3{margin:0;font-size:19px}
+  .sec-head .chev{margin-left:auto;color:var(--muted);transition:transform .25s}
+  .sec.collapsed .chev{transform:rotate(-90deg)}
+  .sec-body{padding:6px 22px 22px}
+  .sec.collapsed .sec-body{display:none}
+  h4{font-size:16px;margin:20px 0 8px;color:#cdd6ff;border-left:3px solid var(--acc);padding-left:10px}
+  p{margin:8px 0}
+  ul{margin:8px 0 8px 2px;padding-left:20px}
+  li{margin:4px 0}
+  .muted{color:var(--muted)}
+  .kw{color:#ffd479;font-weight:600}
+  .term{color:var(--acc2);font-weight:600}
+  /* Cards / callouts */
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:820px){.g2,.g3{grid-template-columns:1fr}}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .card h5{margin:0 0 6px;font-size:14.5px;color:#fff}
+  .tip{border-left:4px solid var(--acc2);background:#142a24;border-radius:8px;padding:10px 14px;margin:12px 0}
+  .warn{border-left:4px solid var(--warn);background:#2a2417;border-radius:8px;padding:10px 14px;margin:12px 0}
+  .exam{border-left:4px solid var(--danger);background:#2a1719;border-radius:8px;padding:10px 14px;margin:12px 0}
+  .exam b,.tip b,.warn b{color:#fff}
+  /* equation / reaction */
+  .eq{background:#0c1020;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:10px 0;
+    font-family:"Cambria Math","Times New Roman",serif;font-size:16px;text-align:center;overflow-x:auto}
+  .rx{background:#0c1020;border:1px dashed #34406b;border-radius:10px;padding:10px 14px;margin:8px 0;
+    font-family:Consolas,Menlo,monospace;font-size:14px}
+  sub{font-size:.7em}
+  /* table */
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:#222742;color:#fff}
+  tr:nth-child(even) td{background:#191d30}
+  /* chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+  .chip{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:12.5px;color:#cfd6f5}
+  /* quiz */
+  .quiz .q{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
+  .quiz .q p.qt{font-weight:600;margin:0 0 10px}
+  .quiz .opt{display:block;width:100%;text-align:left;background:#11152a;border:1px solid var(--line);
+    color:var(--ink);padding:9px 12px;border-radius:9px;margin:6px 0;cursor:pointer;font-size:13.5px;transition:.15s}
+  .quiz .opt:hover{border-color:var(--acc)}
+  .quiz .opt.correct{background:#143324;border-color:var(--acc2)}
+  .quiz .opt.wrong{background:#3a1a1d;border-color:var(--danger)}
+  .quiz .exp{margin-top:8px;font-size:13px;color:var(--muted);display:none}
+  .quiz .exp.show{display:block}
+  .scorebar{position:sticky;bottom:0}
+  /* flashcards */
+  .fc-wrap{perspective:1200px}
+  .fc{background:transparent;height:170px;cursor:pointer}
+  .fc-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+  .fc.flip .fc-inner{transform:rotateY(180deg)}
+  .fc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;border:1px solid var(--line);
+    display:grid;place-items:center;padding:16px;text-align:center}
+  .fc-front{background:var(--panel2);font-weight:600;font-size:15px}
+  .fc-back{background:#152436;transform:rotateY(180deg);font-size:13.5px;color:#d8e4ff;line-height:1.55}
+  .small{font-size:12px;color:var(--muted)}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
+  .btn{background:var(--chip);border:1px solid var(--line);color:var(--ink);padding:7px 14px;border-radius:9px;cursor:pointer;font-size:13px}
+  .btn:hover{border-color:var(--acc)}
+  .btn.primary{background:var(--acc);color:#001;font-weight:700;border-color:var(--acc)}
+  mark{background:#3d4a86;color:#fff;border-radius:3px;padding:0 2px}
+  .hidden-search{display:none !important}
+  details summary{cursor:pointer;color:#cdd6ff;font-weight:600;margin:8px 0}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:6px 0 0}
+  .legend span::before{content:"●";margin-right:5px}
+  .l-kw::before{color:#ffd479}
+  .l-term::before{color:var(--acc2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- SIDEBAR -->
+  <nav class="side">
+    <h1>🧪 Film Deposition</h1>
+    <div class="sub">반도체 공정 — Chapter 7 학습 정리</div>
+    <input class="searchbox" id="search" placeholder="🔍 키워드 검색 (예: PSG, 도금...)">
+    <a href="#s1">1. Introduction</a>
+    <a href="#s2">2. Film Deposition 특성</a>
+    <a href="#s3">3. CVD 화학·메커니즘</a>
+    <a href="#s4">4. CVD 장비 시스템</a>
+    <a href="#s5">5. Dielectrics & 성능</a>
+    <a href="#s6">6. Spin-on Dielectrics</a>
+    <a href="#s7">7. Epitaxy (에피택시)</a>
+    <a href="#s8">8. Quality & Troubleshooting</a>
+    <a href="#cmp" class="mini">⭐ 핵심 비교표 총정리</a>
+    <a href="#flash" class="mini">🃏 플래시카드</a>
+    <a href="#quiz" class="mini">📝 퀴즈 (자가테스트)</a>
+    <div style="margin-top:18px" class="legend">
+      <span class="l-kw">중요 키워드</span>
+      <span class="l-term">핵심 용어</span>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+    <header class="top">
+      <h2>Chapter 7. Film Deposition</h2>
+      <p>박막 증착 — CVD / Dielectrics / Spin-on / Epitaxy 핵심만 빠르게</p>
+      <div class="progress-wrap">
+        학습 진행도 (섹션을 펼쳐서 읽을 때마다 채워짐)
+        <div class="bar"><i id="pbar"></i></div>
+      </div>
+      <div class="toolbar" style="margin-top:14px">
+        <button class="btn primary" onclick="openAll()">전체 펼치기</button>
+        <button class="btn" onclick="closeAll()">전체 접기</button>
+      </div>
+    </header>
+
+    <!-- ============ SECTION 1 ============ -->
+    <section class="sec" id="s1">
+      <div class="sec-head" onclick="toggle(this)"><div class="num">1</div><h3>Introduction — 증착이란?</h3><div class="chev">▾</div></div>
+      <div class="sec-body">
+        <h4>핵심 정의</h4>
+        <ul>
+          <li><span class="term">Deposition(증착)</span> = 웨이퍼 위에 박막 층(film layer)을 올리는 공정.</li>
+          <li><span class="term">Thin film(박막)</span> = 두께(thickness)가 가로·세로보다 훨씬 작은 고체층(≤1 µm). 두께가 너무 얇아 <span class="kw">bulk 물질과 전기적·기계적 성질이 다름</span>.</li>
+          <li>두께 단위는 <span class="kw">Å (옹스트롬)</span>: 1 Å = 0.1 nm = 10⁻¹⁰ m.</li>
+        </ul>
+
+        <h4>박막의 분류</h4>
+        <div class="grid g3">
+          <div class="card"><h5>Permanent Films</h5>소자에 영구히 남음.<br>예: gate oxide, ILD, metal interconnect</div>
+          <div class="card"><h5>Sacrificial Films</h5>특정 공정에만 쓰고 제거.<br>예: PR mask, hard mask, etch stop</div>
+          <div class="card"><h5>Thin Films</h5>매우 얇아 bulk와 성질이 다름. Å~µm</div>
+        </div>
+
+        <h4>Multilevel Metallization (다층 금속배선)</h4>
+        <ul>
+          <li>금속 도체층 ↔ 유전체 절연층이 <span class="kw">교대로 적층</span>되어 소자들을 연결.</li>
+          <li>금속층 추가될 때마다 제조비용 약 <span class="kw">+15%</span>.</li>
+          <li><span class="term">Via(비아)</span>: 유전체를 관통해 위·아래 금속층을 수직 연결하는 구멍.</li>
+          <li>Metal-1 = 가장 critical (선폭 가장 가늘고 결함에 민감) / Top metal = 가장 넓음(≥0.5 µm).</li>
+        </ul>
+
+        <div class="tip"><b>Cu 전환:</b> Al보다 저항이 낮아 → 신호 빠름·전력 소모↓. 단, <span class="kw">새로운 barrier 물질</span>과 다른 공정 필요.</div>
+
+        <h4>유전체 층 (Dielectric)</h4>
+        <table>
+          <tr><th>용어</th><th>설명</th></tr>
+          <tr><td><b>ILD-1</b> (= PMD, premetal dielectric)</td><td>소자(Si)와 첫 금속층 사이. doped SiO₂(glass). 전기 절연 + 오염(mobile ion) 보호 + 열예산(thermal budget) 제한.</td></tr>
+          <tr><td><b>ILD</b> (interlayer dielectric)</td><td>금속층들 사이 절연. 전통적으로 SiO₂(k ≈ 3.9~4.0). 요구: 높은 절연내압, 낮은 k, 좋은 gap-fill, 화학·열 안정성, 낮은 stress.</td></tr>
+        </table>
+        <div class="exam"><b>시험 포인트:</b> <span class="kw">dielectric constant(k)</span>는 회로 속도에 직접 영향 → k가 낮을수록 빠름.</div>
+      </div>
+    </section>
+
+    <!-- ============ SECTION 2 ============ -->
+    <section class="sec" id="s2">
+      <div class="sec-head" onclick="toggle(this)"><div class="num">2</div><h3>Film Deposition — 박막 특성과 성장</h3><div class="chev">▾</div></div>
+      <div class="sec-body">
+        <h4>좋은 박막의 8가지 필수 특성 ⭐</h4>
+        <div class="chips">
+          <span class="chip">① Good Step Coverage (단차 피복)</span>
+          <span class="chip">② High Aspect Ratio Gap Fill (conformality)</span>
+          <span class="chip">③ Thickness Uniformity</span>
+          <span class="chip">④ High Purity & Density</span>
+          <span class="chip">⑤ Controlled Stoichiometry</span>
+          <span class="chip">⑥ Low Film Stress</span>
+          <span class="chip">⑦ Good Electrical Properties</span>
+          <span class="chip">⑧ Excellent Adhesion</span>
+        </div>
+
+        <h4>Step Coverage & Aspect Ratio</h4>
+        <ul>
+          <li><span class="term">Conformal</span>(균일 피복) vs <span class="term">Nonconformal</span>(단차에서 얇아짐).</li>
+          <li><span class="kw">Aspect Ratio = 깊이 : 폭 (depth:width)</span>. 예) 500Å/250Å = 2:1.</li>
+          <li>High aspect ratio = 보통 <span class="kw">3:1 이상</span> (어떤건 5:1+). pinch-off·void 없이 채우는 게 sub-0.25µm 핵심.</li>
+        </ul>
+
+        <h4>Stoichiometry & 구조</h4>
+        <ul>
+          <li><span class="term">Stoichiometry</span> = 화합물 내 원소 비율 (예: H₂O는 H:O = 2:1).</li>
+          <li>증착 반응은 복잡해 의도와 다른 조성이 될 수 있음 → 정확한 비율 맞추는 게 목표.</li>
+          <li><span class="kw">Grain size(결정립 크기)</span>가 불균일하면 전기·기계적 성질 변동 → electromigration 등 신뢰성 문제.</li>
+          <li>예) nitride 증착 시 <span class="kw">수소(H) 오염 → 압축응력(compressive stress)</span>. 목표는 항상 stress 최소화.</li>
+        </ul>
+
+        <h4>Adhesion (접착력) 결정 요인</h4>
+        <div class="chips">
+          <span class="chip">표면 청결도</span><span class="chip">합금 가능한 물질 종류</span>
+          <span class="chip">표면 처리(세정·플라즈마)</span><span class="chip">증착 조건(온도·압력)</span>
+        </div>
+        <p class="muted">Cr, Ti, Co 등은 접착성이 좋아 <span class="kw">barrier / liner layer</span>로 자주 사용.</p>
+
+        <h4>박막 성장 3단계 ⭐</h4>
+        <div class="grid g3">
+          <div class="card"><h5>① Nucleation (핵생성)</h5>첫 원자/분자들이 모여 안정한 핵(nuclei)을 형성, 표면에 부착.</div>
+          <div class="card"><h5>② Island Growth (섬 성장)</h5>핵들이 합쳐져 cluster(섬). surface mobility와 핵 밀도에 따라 성장.</div>
+          <div class="card"><h5>③ Continuous Film (연속막)</h5>섬들이 만나 하나의 연속 고체막 형성.</div>
+        </div>
+
+        <div class="tip">
+          <b>성장 조건 ↔ 결정구조 (시험 단골):</b>
+          <ul style="margin-bottom:0">
+            <li>높은 surface mobility / 낮은 nucleation rate → 큰 cluster → <span class="kw">polycrystalline</span></li>
+            <li>낮은 surface mobility / 높은 nucleation rate → <span class="kw">amorphous</span></li>
+            <li><span class="kw">낮은 증착온도 → amorphous</span> 선호(열에너지↓ → mobility↓)</li>
+          </ul>
+        </div>
+
+        <h4>결정 구조 3종</h4>
+        <table>
+          <tr><th>구조</th><th>특징</th><th>예시</th></tr>
+          <tr><td>Amorphous</td><td>장범위 질서 없음, 저온 절연체</td><td>PECVD SiO₂</td></tr>
+          <tr><td>Polycrystalline</td><td>작은 단결정 영역 + grain boundary</td><td>Polysilicon gate</td></tr>
+          <tr><td>Single Crystal</td><td>전체 장범위 질서, 단결정 기판 필요</td><td>Epitaxial Si</td></tr>
+        </table>
+
+        <h4>증착 기법 대분류</h4>
+        <table>
+          <tr><th>Chemical (화학적)</th><th>Physical (물리적)</th></tr>
+          <tr><td>CVD (APCVD/LPCVD/PECVD/HDPCVD), Plating, Spin-on, Epitaxy(VPE·MOCVD)</td><td>PVD(Sputtering), Evaporation, MBE</td></tr>
+        </table>
+        <p class="muted">본 챕터는 <b>유전체</b> 박막(CVD·epitaxy·SOD) 중심. 금속화(sputtering·도금)는 Ch.8.</p>
+      </div>
+    </section>
+
+    <!-- ============ SECTION 3 ============ -->
+    <section class="sec" id="s3">
+      <div class="sec-head" onclick="toggle(this)"><div class="num">3</div><h3>CVD — 화학과 메커니즘</h3><div class="chev">▾</div></div>
+      <div class="sec-body">
+        <h4>CVD 정의 & 3대 본질</h4>
+        <p><span class="term">CVD (Chemical Vapor Deposition)</span> = 가스 혼합물의 <span class="kw">화학반응</span>으로 웨이퍼 위에 고체 박막을 형성. 표면을 가열해 반응 에너지 공급.</p>
+        <ul>
+          <li>① 화학작용(반응 또는 열분해 pyrolysis) 관여</li>
+          <li>② 박막 재료는 모두 <span class="kw">외부 소스</span>에서 공급</li>
+          <li>③ 반응물은 <span class="kw">증기상(gas)</span>에서 시작</li>
+        </ul>
+
+        <h4>5가지 기본 CVD 반응 ⭐</h4>
+        <table>
+          <tr><th>반응</th><th>설명</th><th>예시</th></tr>
+          <tr><td><b>Pyrolysis</b> (열분해)</td><td>열로 분해, 보통 산소 없음</td><td>SiH₄ → Si + 2H₂</td></tr>
+          <tr><td><b>Photolysis</b></td><td>빛(복사에너지)으로 분해. 생산에선 드묾</td><td>—</td></tr>
+          <tr><td><b>Reduction</b> (환원)</td><td>수소와 반응</td><td>SiCl₄ + 2H₂ → Si + 4HCl</td></tr>
+          <tr><td><b>Oxidation</b> (산화)</td><td>산소와 반응</td><td>SiH₄ + O₂ → SiO₂ + 2H₂</td></tr>
+          <tr><td><b>Redox</b></td><td>환원+산화 결합 → 새 화합물 2개</td><td>—</td></tr>
+        </table>
+
+        <div class="tip">
+          <b>Heterogeneous vs Homogeneous (시험 단골):</b>
+          <ul style="margin-bottom:0">
+            <li><span class="kw">Heterogeneous(선호 ✅)</span>: 웨이퍼 표면에서 반응(surface catalyzed) → 고품질·접착·밀도 ↑</li>
+            <li><span class="kw">Homogeneous(나쁨 ❌)</span>: 가스상에서 반응 → gas-phase cluster → 접착·밀도 ↓, 결함 ↑</li>
+          </ul>
+        </div>
+
+        <h4>CVD 반응 8단계 ⭐</h4>
+        <ol>
+          <li>반응물 질량수송 (gas → 증착영역)</li>
+          <li>Film precursor 형성 (gas-phase 반응)</li>
+          <li>precursor 표면으로 수송</li>
+          <li>precursor 흡착(Adsorption)</li>
+          <li>표면 확산(precursor diffusion)</li>
+          <li>표면반응 → 박막 증착 + by-product</li>
+          <li>by-product 탈착(Desorption)</li>
+          <li>by-product 반응기 밖으로 배출</li>
+        </ol>
+        <p class="muted"><span class="term">Adsorption</span>=가스가 표면에 화학결합 / <span class="term">Desorption</span>=부산물 표면에서 제거.</p>
+
+        <h4>Rate-Limiting Step (속도 결정 단계) ⭐⭐</h4>
+        <p>8단계는 순차적 → <span class="kw">가장 느린 단계가 전체 증착속도를 결정</span>.</p>
+        <div class="grid g2">
+          <div class="card">
+            <h5>Mass-Transport Limited</h5>
+            <ul style="margin:0">
+              <li><span class="kw">고온·고압</span> (APCVD)</li>
+              <li>온도 의존성 <b>약함</b> (그래프 기울기 작음)</li>
+              <li>반응물 공급이 부족 → 온도 올려도 빨라지지 않음</li>
+              <li>가스흐름 설계가 중요</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h5>(Surface) Reaction-Rate Limited</h5>
+            <ul style="margin:0">
+              <li><span class="kw">저온·저압</span> (LPCVD)</li>
+              <li>kinetically controlled (반응물 충분, 표면반응이 느림)</li>
+              <li>온도 의존성 <b>강함</b> (Eₐ≈1.6 eV for Si)</li>
+              <li><span class="kw">균일 온도 유지가 두께 균일성에 필수</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <h4>Gas-Flow & Boundary Layer</h4>
+        <ul>
+          <li>표면 근처는 마찰로 가스흐름 ≈ 0 → <span class="term">Boundary layer(경계층)</span> 형성. 매우 얇으면 <span class="term">Stagnant layer(정체층)</span>.</li>
+          <li>반응물 공급은 경계층을 통한 <span class="kw">확산(diffusion)</span>으로 제한.</li>
+          <li>두께식: d = √(µx / ρv). 웨이퍼를 가스흐름에 대해 <span class="kw">tilt</span>하면 경계층 균일성↑.</li>
+        </ul>
+
+        <div class="tip"><b>압력 효과:</b> 저압 → 확산도(diffusivity) 급증 → 반응물이 표면에 빨리 도달 → rate-limiting이 <span class="kw">surface reaction</span>으로 바뀜 → 웨이퍼를 촘촘히 수직 적층 가능(LPCVD 장점).</div>
+
+        <h4>도핑된 산화막 (Doped Oxides) ⭐</h4>
+        <table>
+          <tr><th>이름</th><th>도펀트 소스</th><th>핵심 특징</th></tr>
+          <tr><td><b>PSG</b> (Phosphosilicate Glass)</td><td>Phosphine PH₃ → P₂O₅</td><td>P₂O₅ <span class="kw">≤4 wt%</span>(초과 시 hygroscopic). stress↓, moisture barrier↑, <span class="kw">ion getter</span>. HDPCVD로 ILD-1에 인기.</td></tr>
+          <tr><td><b>BSG</b> (Borosilicate)</td><td>Diborane B₂H₆</td><td>고온 reflow(~1000°C) 필요. <span class="kw">mobile ion barrier로는 부적합</span>.</td></tr>
+          <tr><td><b>BPSG</b> (Borophospho-)</td><td>B + P (각 2~6%)</td><td>reflow 800~1000°C, good step coverage. gettering↑. 최근 ILD-1은 PSG로 대체(thermal budget↓).</td></tr>
+          <tr><td><b>FSG</b> (Fluorosilicate)</td><td>Fluorine 첨가</td><td><span class="kw">k: 3.9 → 3.5</span> (1세대 low-k). F ≤6% (안정성·부식 우려).</td></tr>
+        </table>
+
+        <div class="warn"><b>중요 구분:</b> 산화막 도핑 ≠ 실리콘 도핑!<br>
+          Si 도핑은 전자 주개/받개(n/p형) → 전기전도도 변화.<br>
+          산화막 도핑은 <span class="kw">amorphous라 donor/acceptor 역할 없음</span> → 물리적 특성(gettering, stress, reflow 온도) 변경 목적.</div>
+      </div>
+    </section>
+
+    <!-- ============ SECTION 4 ============ -->
+    <section class="sec" id="s4">
+      <div class="sec-head" onclick="toggle(this)"><div class="num">4</div><h3>CVD 장비 시스템 (APCVD/LPCVD/PECVD/HDPCVD)</h3><div class="chev">▾</div></div>
+      <div class="sec-body">
+        <h4>4종 비교 — 가장 중요한 표 ⭐⭐⭐</h4>
+        <table>
+          <tr><th>방식</th><th>압력/온도</th><th>레짐</th><th>장점</th><th>단점</th><th>용도</th></tr>
+          <tr><td><b>APCVD</b></td><td>760 torr</td><td>Mass-transport limited</td><td>장비 단순, 빠른 증착</td><td>step coverage 나쁨, 파티클, 낮은 throughput</td><td>저온 산화막(doped/undoped)</td></tr>
+          <tr><td><b>LPCVD</b></td><td>0.1~5 torr / 300~900°C</td><td>Reaction-rate limited</td><td>순도·균일성·conformality 우수, 대용량</td><td>고온, 낮은 증착률, 진공 필요</td><td>고온 산화막, 질화막, poly-Si, W, WSi₂</td></tr>
+          <tr><td><b>PECVD</b></td><td>RF plasma / 250~450°C</td><td>—</td><td>저온, 빠름, 좋은 step coverage</td><td>RF 필요, 비용↑, stress↑(tensile), H/파티클 오염</td><td>금속 위 저온 산화막, ILD, passivation</td></tr>
+          <tr><td><b>HDPCVD</b></td><td>ECR/ICP/Helicon, 2~10 mtorr</td><td>—</td><td><span class="kw">우수한 gap-fill</span> (high AR)</td><td>장비 복잡, 열부하↑</td><td>sub-0.25µm, STI, ILD, etch-stop</td></tr>
+        </table>
+
+        <h4>Hot-wall vs Cold-wall</h4>
+        <div class="grid g2">
+          <div class="card"><h5>Hot-wall</h5>챔버 전체 가열 → 온도 균일, 대용량(150~200장). 단, <span class="kw">벽에도 증착 → 주기적 세정 필요</span>. LPCVD 선호.</div>
+          <div class="card"><h5>Cold-wall</h5>웨이퍼/서셉터만 가열 → 파티클↓, 세정 빈도↓. RF유도/램프 가열. PECVD·single-wafer 선호.</div>
+        </div>
+
+        <h4>APCVD 주요 반응</h4>
+        <div class="rx">SiH₄ + O₂ → SiO₂ + 2H₂  (silane 산화, 450~500°C, Al 위 ILD에 유리하나 step coverage 나쁨)</div>
+        <div class="rx">Si(C₂H₅O)₄ + 8O₃ → SiO₂ + 10H₂O + 8CO₂  (TEOS-Ozone, 400°C, conformality 우수, STI에 이상적)</div>
+        <p class="muted">Silane은 <span class="kw">pyrophoric(자연발화성)</span> → Ar/N₂에 2~10% 희석 공급. TEOS-O₃ 막은 porous → reflow로 수분 제거·치밀화.</p>
+
+        <h4>LPCVD 주요 막</h4>
+        <table>
+          <tr><th>막</th><th>반응/조건</th><th>비고</th></tr>
+          <tr><td>SiO₂ (TEOS)</td><td>TEOS 열분해, 650~750°C (LPTEOS)</td><td>conformality 매우 좋음, 성장률 느림(10~15 nm/min)</td></tr>
+          <tr><td>SiO₂ (DCS)</td><td>SiH₂Cl₂ + N₂O, ~900°C</td><td>고품질, 단 고온은 thermal budget에 불리</td></tr>
+          <tr><td>Si₃N₄</td><td>3SiCl₂H₂ + 4NH₃ → Si₃N₄ + 6HCl + 6H₂, 700~800°C</td><td>passivation·hard mask. <span class="kw">k=6.9</span>(높아 ILD 부적합). amorphous + H 다량.</td></tr>
+          <tr><td>Polysilicon</td><td>SiH₄ 열분해, 575~650°C, 0.2~1 torr</td><td>gate electrode. in-situ 도핑(arsine/phosphine/diborane).</td></tr>
+          <tr><td>Silicon Oxynitride (SiOₓNᵧ)</td><td>SiH₄ + N₂O + NH₃ 등</td><td>oxide+nitride 장점 결합, 굴절률↓ → antireflective layer, etch stop</td></tr>
+        </table>
+        <p class="muted">LPCVD는 충돌이 많아 <span class="kw">undirected(무방향)</span> 증착 → 단차·트렌치 conformal 피복 우수. 청소: HF bath 또는 in-situ(플라즈마 F gas, ClF₃).</p>
+
+        <h4>PECVD</h4>
+        <ul>
+          <li>RF 전력으로 가스를 깨 <span class="kw">radical(라디칼)</span> 생성 → 표면에서 반응. 주파수 예: 13.56 MHz, 2.45 GHz.</li>
+          <li>큰 장점: <span class="kw">저온(350°C)</span>. 예) Si₃N₄를 LPCVD는 800~900°C, Al(660°C 녹음) 위엔 불가 → PECVD 350°C로 가능.</li>
+          <li>SiO₂: SiH₄ + 2N₂O → SiO₂ + 2N₂ + 2H₂ (silane+O₂는 파티클·pinhole 유발해 비선호).</li>
+          <li>막은 <span class="kw">non-stoichiometric</span> (SiₓNᵧHᵤ). PETEOS는 narrow gap fill 부적합(void).</li>
+          <li>한계: <span class="kw">0.5µm 이하 gap fill 불가</span>(pinch-off → void/keyhole) → HDPCVD로 대체.</li>
+        </ul>
+        <table>
+          <tr><th>Property</th><th>LPCVD nitride</th><th>PECVD nitride</th></tr>
+          <tr><td>증착온도</td><td>700~800°C</td><td>300~400°C</td></tr>
+          <tr><td>조성</td><td>Si₃N₄</td><td>SiₓNᵧHᵤ</td></tr>
+          <tr><td>Step coverage</td><td>Fair</td><td>Conformal</td></tr>
+          <tr><td>Stress</td><td>tensile</td><td>tensile or compressive</td></tr>
+        </table>
+
+        <h4>HDPCVD ⭐</h4>
+        <ul>
+          <li>PECVD의 특수형, <span class="kw">ICP/ECR/Helicon</span>로 고밀도 플라즈마(10¹¹~10¹² ions/cm³).</li>
+          <li>웨이퍼 RF bias → 이온 방향성 → narrow·high-AR gap을 void 없이 채움.</li>
+          <li><span class="kw">동시 증착+식각(simultaneous dep & etch)</span>이 핵심. <span class="kw">D:E ratio ≈ 3:1</span>.</li>
+          <li>5단계: ①ion-induced deposition ②sputter etch ③redeposition (이 3개가 dominant) ④hot-neutral CVD ⑤reflection.</li>
+          <li>열부하↑ → <span class="kw">backside He gas로 웨이퍼 냉각</span> (ILD는 400°C 이하 유지, Al 보호).</li>
+        </ul>
+        <div class="tip"><b>3-part gap fill 공정:</b> ① HDPCVD gap fill (AR>3:1) → ② PECVD cap → ③ CMP 평탄화.</div>
+      </div>
+    </section>
+
+    <!-- ============ SECTION 5 ============ -->
+    <section class="sec" id="s5">
+      <div class="sec-head" onclick="toggle(this)"><div class="num">5</div><h3>Dielectrics & Performance (유전체와 성능)</h3><div class="chev">▾</div></div>
+      <div class="sec-body">
+        <h4>Dielectric Constant (k)</h4>
+        <ul>
+          <li>전기에너지 저장능력(=capacitor처럼 작동). 최저 k = <span class="kw">1.0 (공기)</span>.</li>
+          <li>thermal SiO₂ k ≈ 3.9, PECVD oxide k ≈ 4.1~4.3.</li>
+          <li><span class="kw">k가 낮을수록</span> 인접 도체 간 capacitance↓ → 충전 시간↓ → <span class="kw">속도↑, 전력↓</span>.</li>
+        </ul>
+
+        <h4>RC Delay (신호 지연) ⭐</h4>
+        <p>저항 R = ρL/(TW), 유효 capacitance와 곱해 RC 시간상수가 신호지연을 만듦.</p>
+        <div class="eq">RC = 2ε₀εᵣ · (L²/TW) · (T/X + W/H)</div>
+        <ul>
+          <li>3대 영향: <span class="kw">금속 저항률 ρ</span>, 유전체 <span class="kw">εᵣ</span>, 배선 기하구조(L,T,W,X,H).</li>
+          <li><span class="kw">L²</span>이 가장 지배적 → 배선 길이가 RC에 큰 영향.</li>
+          <li>줄이는 법: ① Cu 사용(ρ↓) ② low-k 유전체(εᵣ↓) ③ 최적 기하구조(L²↓).</li>
+        </ul>
+        <div class="warn"><b>배선의 역설:</b> 배선 치수를 줄이면 R↑·C↑ → RC delay↑ → 칩 속도↓. (트랜지스터는 gate length 줄이면 빨라지는 것과 <b>반대</b>!)</div>
+
+        <h4>Low-k 후보 물질</h4>
+        <table>
+          <tr><th>물질</th><th>k</th><th>비고</th></tr>
+          <tr><td>FSG (SiOF)</td><td>3.4~4.1</td><td>SiO₂와 유사, F가 Ta barrier 부식 우려</td></tr>
+          <tr><td>HSQ</td><td>2.9</td><td>spin-on, 수분 흡수 → passivation 필요</td></tr>
+          <tr><td>Nanoporous silica</td><td>1.3~2.5</td><td>기공으로 k 조절, 기계적 강도 약함</td></tr>
+          <tr><td>PAE</td><td>2.6~2.8</td><td>spin-on, 접착·CMP 우수</td></tr>
+          <tr><td>a-CF (FLAC)</td><td>2.8</td><td>HDPCVD 증착 유력</td></tr>
+        </table>
+
+        <h4>High-k 물질</h4>
+        <ul>
+          <li>용도: <span class="kw">DRAM 저장 capacitor</span> & 극박 gate oxide 대체.</li>
+          <li><span class="kw">Ta₂O₅</span> (k=20~30, 통합 용이) / <span class="kw">BST (BaSrTiO₃)</span> (단위면적당 capacitance↑).</li>
+          <li>gate oxide가 <1.5~2 nm로 얇아지면 <span class="kw">tunneling current</span> → threshold 드리프트·회로 실패 → high-k 필요.</li>
+        </ul>
+
+        <h4>Device Isolation</h4>
+        <p>소자 간 전기적 격리. 두 기법: <span class="kw">LOCOS</span>(local oxidation of silicon), <span class="kw">STI</span>(shallow trench isolation).</p>
+      </div>
+    </section>
+
+    <!-- ============ SECTION 6 ============ -->
+    <section class="sec" id="s6">
+      <div class="sec-head" onclick="toggle(this)"><div class="num">6</div><h3>Spin-on Dielectrics (SOG / SOD)</h3><div class="chev">▾</div></div>
+      <div class="sec-body">
+        <h4>Spin-on Glass (SOG)</h4>
+        <ul>
+          <li>CMP 보편화(1990s) 전 ILD gap fill·평탄화에 사용. 액체를 웨이퍼에 뿌리고 회전.</li>
+          <li>2종: <span class="kw">Organic = siloxane</span> / <span class="kw">Inorganic = silicate</span>.</li>
+        </ul>
+        <table>
+          <tr><th></th><th>Organic (Siloxane)</th><th>Inorganic (Silicate)</th></tr>
+          <tr><td>특성</td><td>수분 흡수↑, 열적 불안정, plasma 내성 없음</td><td>경화 후 SiO₂처럼 거동, 수분 흡수 적음, 열 안정</td></tr>
+          <tr><td>단점</td><td>—</td><td>경화 중 수축↑ → 두꺼우면 stress·cracking</td></tr>
+          <tr><td>용도</td><td>etchback용 planarizing layer</td><td>주로 gap fill</td></tr>
+        </table>
+        <ul>
+          <li>적용 전 미리 PECVD oxide 등 <span class="kw">predeposited oxide</span> 깔아둠.</li>
+          <li>두께는 <span class="kw">spin speed·ramp-up rate</span>로 결정. 경화 ~400°C 후 etchback 평탄화.</li>
+          <li><span class="kw">Cap oxide</span>로 봉인 → 수분 흡수 최소화(없으면 via poisoning·부식 위험).</li>
+        </ul>
+
+        <h4>Spin-on Dielectric (SOD)</h4>
+        <ul>
+          <li>low-k 막을 spin-on으로 → <span class="kw">CVD의 cost-effective 대안</span>. 예: HSQ.</li>
+          <li>경화: hotplate 350~475°C. 신소재는 수분 흡수↓·crack 내성↑ → <span class="kw">cap oxide 불필요</span>(단 adhesion promoter 필요할 수 있음).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ SECTION 7 ============ -->
+    <section class="sec" id="s7">
+      <div class="sec-head" onclick="toggle(this)"><div class="num">7</div><h3>Epitaxy (에피택시)</h3><div class="chev">▾</div></div>
+      <div class="sec-body">
+        <h4>정의</h4>
+        <p><span class="term">Epitaxy</span> = epi(위) + taxis(배열). 기판과 <span class="kw">같은 결정 방위</span>를 유지하는 단결정층 성장. 성장온도 보통 500~1200°C.</p>
+        <div class="grid g2">
+          <div class="card"><h5>Homoepitaxy</h5>같은 물질 (Si on Si). 격자 완전 일치. IC 제조에 가장 흔함.</div>
+          <div class="card"><h5>Heteroepitaxy</h5>다른 물질 (GaAs on Si). 격자 불일치 → stress·결함. optoelectronics용.</div>
+        </div>
+
+        <h4>왜 쓰나? (용도)</h4>
+        <div class="chips">
+          <span class="chip">independent optimization (기판과 무관한 doping)</span>
+          <span class="chip">Latchup 방지 (CMOS)</span>
+          <span class="chip">Buried layer (저저항)</span>
+          <span class="chip">Power device (두꺼운 epi, 고내압)</span>
+          <span class="chip">Raised S/D (저저항)</span>
+          <span class="chip">고품질·고이동도</span>
+        </div>
+
+        <h4>성장 속도 모델 ⭐</h4>
+        <p>표면 flux Jₛ = kₛNₛ, 가스 flux J_g = h_g(N_g − Nₛ). 정상상태에서 같음:</p>
+        <div class="eq">v = (kₛh_g / (kₛ + h_g)) · (N_g/N)</div>
+        <div class="grid g2">
+          <div class="card"><h5>Mass-transfer limited</h5>kₛ ≫ h_g 일 때 → v = h_g·(N_g/N). <span class="kw">온도 무관(평평)</span>. <b>이 영역 선택!</b> (성장률 제어 쉽고 온도 민감도↓)</div>
+          <div class="card"><h5>Surface-reaction limited</h5>h_g ≫ kₛ 일 때 → v = kₛ·(N_g/N). Arrhenius (Eₐ≈1.5 eV), 저온, 온도 민감.</div>
+        </div>
+
+        <h4>성장 방법 3종</h4>
+        <table>
+          <tr><th>방법</th><th>특징</th></tr>
+          <tr><td><b>VPE</b> (Vapor-Phase Epitaxy)</td><td>CVD 기반, <span class="kw">Si epitaxy의 주력</span>. 클로로실란(SiCl₄/SiHCl₃/SiH₂Cl₂) + H₂, 1050~1250°C. Cl 적을수록 저온 가능하나 파티클↑.</td></tr>
+          <tr><td><b>MOCVD</b></td><td>VPE의 일종. <span class="kw">화합물 반도체(GaAs)</span> 저온 성장. laser·LED·광소자. (CH₃)₃Ga + AsH₃ → GaAs + 3CH₄.</td></tr>
+          <tr><td><b>MBE</b> (Molecular-Beam Epitaxy)</td><td><span class="kw">초고진공(10⁻¹⁰~10⁻¹¹ torr)</span>, 500~900°C. 원자수준 두께·도핑 제어. superlattice·다층소자. 성장률 낮음.</td></tr>
+        </table>
+
+        <div class="rx">SiCl₄ + 2H₂ ⇌ Si + 4HCl  (가역, ~1200°C. HCl 과다면 식각 발생 → in-situ 세정 활용)</div>
+        <div class="rx">SiH₄ → Si + 2H₂  (비가역, 저온, HCl 부산물 없음. 단 poly-Si·실리카 dust 주의)</div>
+        <div class="warn"><b>SiCl₄ 농도 효과:</b> 농도↑ → 성장률 증가 후 peak 후 감소 → <span class="kw">28% 초과 시 식각(etching)</span> 지배. 성장률 너무 높으면 <span class="kw">poly-Si</span> 증착(>2µm/min).</div>
+
+        <h4>Epitaxy 문제점 (Challenges) ⭐</h4>
+        <table>
+          <tr><th>문제</th><th>메커니즘</th><th>완화</th></tr>
+          <tr><td>Autodoping</td><td>기판/표면에서 도펀트 증발 → 가스로 → epi층에 의도치 않게 도핑</td><td>chlorine 전구체(in-situ etch), 가스흐름·온도 최적화</td></tr>
+          <tr><td>Out-diffusion</td><td>고온(1050~1200°C)에서 heavily-doped 기판 도펀트가 epi로 확산 → junction 흐려짐</td><td>저온 성장, 짧은 시간, RTP</td></tr>
+          <tr><td>Pattern shift</td><td>buried layer 위 단차(~0.2µm)에서 성장 중 패턴 이동/왜곡</td><td>예측 어려움 → 후속 mask 설계 시 보정</td></tr>
+        </table>
+        <p class="muted">VPE 반응기: horizontal(서셉터 tilt) / vertical(pancake) / barrel. 서셉터는 graphite(SiC·SiN coating). 가열: RF 유도 or 램프.</p>
+      </div>
+    </section>
+
+    <!-- ============ SECTION 8 ============ -->
+    <section class="sec" id="s8">
+      <div class="sec-head" onclick="toggle(this)"><div class="num">8</div><h3>CVD Quality & Troubleshooting</h3><div class="chev">▾</div></div>
+      <div class="sec-body">
+        <h4>주요 품질 척도 (Quality Measures)</h4>
+        <table>
+          <tr><th>파라미터</th><th>결함/내용</th><th>비고</th></tr>
+          <tr><td>Voids (high-AR gap)</td><td><span class="kw">Keyhole void</span> → CMP 후 trench → 금속 증착 시 open circuit</td><td>근본원인: high-AR을 PECVD로 채움 → HDPCVD 필요</td></tr>
+          <tr><td>Film stress</td><td>cracking·delamination, Si 결함 전파, 누설</td><td>RF power·pressure 조절, doping으로 stress↓</td></tr>
+          <tr><td>Film thickness</td><td>두께 초과</td><td>증착시간↓, gas-flow↓</td></tr>
+          <tr><td>Refractive index (R/I)</td><td>막 품질·조성 지표 (SiO₂ R/I=1.46)</td><td><span class="kw">R/I 높음→Si 과다</span>, <span class="kw">R/I 낮음→porous(수분흡수)</span></td></tr>
+        </table>
+
+        <h4>흔한 트러블슈팅</h4>
+        <table>
+          <tr><th>문제</th><th>원인 위치</th><th>대응</th></tr>
+          <tr><td rowspan="3">파티클 오염</td><td><b>막 위</b>: 증착 후 형성</td><td>quartzware·챔버 wet clean 주기↑</td></tr>
+          <tr><td><b>막 안</b>: gas-phase nucleation (silane 과다)</td><td>가스흐름·recipe·누설·filter 점검</td></tr>
+          <tr><td><b>막 아래</b>: SiC·quartz·벽 파티클이 증착 전 낙하</td><td>증착 전 웨이퍼 세정 점검</td></tr>
+          <tr><td>두께/응력 이상</td><td>온도·압력·전력·가스흐름</td><td>thermocouple 교정(흔한 고장), MFC 교정, 누설 점검</td></tr>
+          <tr><td>ESC 유전체 cracking</td><td>높은 열부하 → 침식·arcing</td><td>backside 냉각 점검, ESC 재료 점검</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ COMPARISON CHEAT SHEET ============ -->
+    <section class="sec" id="cmp">
+      <div class="sec-head" onclick="toggle(this)"><div class="num">⭐</div><h3>핵심 비교표 총정리 (시험 직전용)</h3><div class="chev">▾</div></div>
+      <div class="sec-body">
+        <h4>증착 레짐 한눈에</h4>
+        <table>
+          <tr><th></th><th>Mass-transport limited</th><th>Reaction-rate limited</th></tr>
+          <tr><td>조건</td><td>고온·고압 (APCVD)</td><td>저온·저압 (LPCVD)</td></tr>
+          <tr><td>병목</td><td>반응물 공급(확산)</td><td>표면 반응 속도</td></tr>
+          <tr><td>온도 의존성</td><td>약함 (기울기 작음)</td><td>강함 (Arrhenius)</td></tr>
+          <tr><td>관리 포인트</td><td>가스흐름 균일성</td><td>온도 균일성</td></tr>
+        </table>
+
+        <h4>대표 반응식 모음</h4>
+        <div class="rx">SiH₄ → Si + 2H₂                       (poly-Si pyrolysis)</div>
+        <div class="rx">SiH₄ + O₂ → SiO₂ + 2H₂                 (silane 산화)</div>
+        <div class="rx">Si(C₂H₅O)₄ + 8O₃ → SiO₂ + 10H₂O + 8CO₂ (TEOS-O₃)</div>
+        <div class="rx">3SiCl₂H₂ + 4NH₃ → Si₃N₄ + 6HCl + 6H₂   (LPCVD nitride)</div>
+        <div class="rx">SiH₄ + 2N₂O → SiO₂ + 2N₂ + 2H₂        (PECVD oxide)</div>
+        <div class="rx">SiCl₄ + 2H₂ ⇌ Si + 4HCl               (VPE epi)</div>
+        <div class="rx">(CH₃)₃Ga + AsH₃ → GaAs + 3CH₄          (MOCVD GaAs)</div>
+
+        <h4>숫자로 외우기</h4>
+        <div class="chips">
+          <span class="chip">k: 공기 1.0 / SiO₂ 3.9 / PECVD 4.1~4.3 / Si₃N₄ 6.9 / Ta₂O₅ 20~30</span>
+          <span class="chip">APCVD 760 torr</span>
+          <span class="chip">LPCVD 0.1~5 torr</span>
+          <span class="chip">HDPCVD 2~10 mtorr, D:E≈3:1</span>
+          <span class="chip">PSG P₂O₅ ≤4%</span>
+          <span class="chip">High AR ≥3:1</span>
+          <span class="chip">PECVD 250~450°C</span>
+          <span class="chip">Al 녹는점 660°C</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FLASHCARDS ============ -->
+    <section class="sec" id="flash">
+      <div class="sec-head" onclick="toggle(this)"><div class="num">🃏</div><h3>플래시카드 (클릭해서 뒤집기)</h3><div class="chev">▾</div></div>
+      <div class="sec-body">
+        <p class="small">카드를 클릭하면 정답이 보입니다. 손으로 가리고 먼저 답해보세요.</p>
+        <div class="grid g3 fc-wrap" id="fcContainer"></div>
+      </div>
+    </section>
+
+    <!-- ============ QUIZ ============ -->
+    <section class="sec" id="quiz">
+      <div class="sec-head" onclick="toggle(this)"><div class="num">📝</div><h3>퀴즈 — 자가 테스트</h3><div class="chev">▾</div></div>
+      <div class="sec-body">
+        <div class="progress-wrap" style="margin-bottom:14px">
+          점수: <b id="score">0</b> / <span id="total">0</span> · <span id="pct">0%</span>
+          <div class="bar"><i id="qbar"></i></div>
+        </div>
+        <div class="quiz" id="quizContainer"></div>
+        <button class="btn primary" onclick="resetQuiz()">퀴즈 다시 풀기</button>
+      </div>
+    </section>
+
+    <p class="small" style="margin-top:40px">© 학습용 정리 · Chapter 7 Film Deposition (Quirk/Serda + Jaeger 기반) · 본 파일은 오프라인에서 단독 실행됩니다.</p>
+  </main>
+</div>
+
+<script>
+/* ---------- collapse ---------- */
+const readSet = new Set();
+function toggle(head){
+  const sec = head.parentElement;
+  sec.classList.toggle('collapsed');
+  if(!sec.classList.contains('collapsed')){ readSet.add(sec.id); updateProgress(); }
+}
+function openAll(){document.querySelectorAll('.sec').forEach(s=>{s.classList.remove('collapsed');readSet.add(s.id);});updateProgress();}
+function closeAll(){document.querySelectorAll('.sec').forEach(s=>s.classList.add('collapsed'));}
+/* start collapsed except first */
+document.querySelectorAll('.sec').forEach((s,i)=>{ if(i!==0) s.classList.add('collapsed'); else readSet.add(s.id); });
+function updateProgress(){
+  const total=document.querySelectorAll('.sec').length;
+  document.getElementById('pbar').style.width=Math.round(readSet.size/total*100)+'%';
+}
+updateProgress();
+
+/* ---------- search highlight ---------- */
+const search=document.getElementById('search');
+search.addEventListener('input',()=>{
+  const q=search.value.trim().toLowerCase();
+  document.querySelectorAll('.sec').forEach(sec=>{
+    if(!q){ sec.classList.remove('hidden-search'); return; }
+    const txt=sec.innerText.toLowerCase();
+    if(txt.includes(q)){ sec.classList.remove('hidden-search','collapsed'); readSet.add(sec.id);}
+    else sec.classList.add('hidden-search');
+  });
+  updateProgress();
+});
+
+/* ---------- flashcards ---------- */
+const cards=[
+  ["Thin film의 두께 단위와 환산은?","Å(옹스트롬). 1Å = 0.1nm = 10⁻¹⁰ m"],
+  ["Heterogeneous vs Homogeneous 반응 중 선호되는 것은?","Heterogeneous(표면 반응). 고품질·고밀도·좋은 접착."],
+  ["Mass-transport limited는 어떤 조건?","고온·고압(APCVD). 온도 의존성 약함, 반응물 공급이 병목."],
+  ["Reaction-rate limited에서 가장 중요한 관리 변수는?","온도 균일성(균일 두께를 위해)."],
+  ["PSG에서 P₂O₅ 함량 한계와 이유는?","≤4 wt%. 초과 시 hygroscopic(수분 흡수)."],
+  ["산화막 도핑이 실리콘 도핑과 다른 점?","산화막은 amorphous → donor/acceptor 역할 없음. 물리적 특성(gettering·stress·reflow) 변경 목적."],
+  ["APCVD의 대표 단점은?","Poor step coverage, 파티클 오염, 낮은 throughput."],
+  ["LPCVD가 conformal한 이유?","많은 충돌로 undirected 증착 → 단차·트렌치 균일 피복."],
+  ["PECVD를 쓰는 가장 큰 이유?","저온(~350°C). Al(660°C) 위에도 nitride 증착 가능."],
+  ["HDPCVD가 void 없이 gap을 채우는 원리?","동시 증착+식각(D:E≈3:1) + 이온 방향성(wafer bias)."],
+  ["k값: 공기 / SiO₂ / Si₃N₄ / Ta₂O₅?","1.0 / 3.9 / 6.9 / 20~30"],
+  ["RC delay에서 가장 지배적인 기하 인자?","L² (배선 길이의 제곱)."],
+  ["배선 치수를 줄이면 칩 속도는?","느려짐(R↑·C↑→RC↑). 트랜지스터와 반대."],
+  ["Si epitaxy 주력 방법과 온도?","VPE(클로로실란+H₂), 1050~1250°C."],
+  ["Epitaxy 성장 시 선택하는 레짐과 이유?","Mass-transfer limited. 온도 무관 → 성장률 제어 쉽고 민감도↓."],
+  ["Autodoping이란?","기판 도펀트가 증발·식각으로 가스에 섞여 epi층을 의도치 않게 도핑."],
+  ["박막 성장 3단계?","Nucleation → Island growth → Continuous film."],
+  ["저온 증착이 amorphous를 만드는 이유?","열에너지↓ → surface mobility↓ → 무질서 성장."],
+  ["Refractive index 높음/낮음의 의미?","높음=Si 과다, 낮음=porous(수분 흡수)."],
+  ["TEOS-O₃ APCVD의 장점?","우수한 conformality·step coverage → STI에 이상적."]
+];
+const fcC=document.getElementById('fcContainer');
+cards.forEach(([q,a])=>{
+  const d=document.createElement('div');d.className='fc';
+  d.innerHTML=`<div class="fc-inner"><div class="fc-face fc-front">${q}</div><div class="fc-face fc-back">${a}</div></div>`;
+  d.onclick=()=>d.classList.toggle('flip');
+  fcC.appendChild(d);
+});
+
+/* ---------- quiz ---------- */
+const quiz=[
+  {q:"고온·고압 CVD(APCVD)는 어떤 레짐인가?",o:["Reaction-rate limited","Mass-transport limited","Tunneling limited","Photolysis limited"],a:1,e:"고온·고압은 반응물 공급(확산)이 병목 → mass-transport limited."},
+  {q:"다음 중 surface reaction에서 발생하며 고품질 막을 만드는 반응은?",o:["Homogeneous","Heterogeneous","Photolysis","Redox"],a:1,e:"Heterogeneous(표면 촉매) 반응이 선호됨."},
+  {q:"PSG에서 P₂O₅ 함량 한계는?",o:["1%","4%","10%","20%"],a:1,e:"약 4 wt% 초과 시 hygroscopic해짐."},
+  {q:"Al 금속 위에 Si₃N₄을 증착할 수 있는 방법은? (Al 녹는점 660°C)",o:["LPCVD 800°C","열산화 1000°C","PECVD 350°C","VPE 1200°C"],a:2,e:"PECVD는 저온(~350°C)이라 Al 위에 가능."},
+  {q:"high-AR gap을 void 없이 채우는 데 가장 적합한 방식?",o:["APCVD","PECVD","HDPCVD","Spin-on"],a:2,e:"HDPCVD는 동시 증착+식각으로 우수한 gap-fill."},
+  {q:"다음 중 dielectric constant가 가장 낮은 것은?",o:["Si₃N₄","SiO₂","공기(air)","Ta₂O₅"],a:2,e:"최저 k=1.0은 공기."},
+  {q:"RC delay 식에서 가장 지배적인 기하 인자는?",o:["T","W","L²","H"],a:2,e:"L²이 RC를 가장 크게 좌우."},
+  {q:"산화막(oxide) 도핑이 실리콘 도핑과 다른 이유는?",o:["산화막이 단결정이라서","산화막은 amorphous라 donor/acceptor 역할 없음","도펀트가 같아서","온도가 같아서"],a:1,e:"산화막은 amorphous → 물리적 특성 변경 목적."},
+  {q:"Si epitaxy의 주력 방법은?",o:["MBE","MOCVD","VPE","Spin-on"],a:2,e:"VPE(클로로실란 환원)가 IC Si epitaxy 주력."},
+  {q:"Epitaxy에서 보통 선택하는 성장 레짐은?",o:["Surface-reaction limited","Mass-transfer limited","Photolysis","Etch limited"],a:1,e:"온도 무관해 성장률 제어가 쉬운 mass-transfer limited 선택."},
+  {q:"Refractive index가 낮은 CVD 산화막이 의미하는 것은?",o:["Si 과다","porous(수분 흡수)","고밀도","단결정"],a:1,e:"낮은 R/I = porous film → 수분 흡수 경향."},
+  {q:"박막 성장의 올바른 순서는?",o:["Island→Nucleation→Continuous","Nucleation→Island→Continuous","Continuous→Island→Nucleation","Nucleation→Continuous→Island"],a:1,e:"핵생성 → 섬 성장 → 연속막."},
+];
+const qC=document.getElementById('quizContainer');
+let answered=new Set();
+function renderQuiz(){
+  qC.innerHTML='';answered.clear();
+  document.getElementById('total').textContent=quiz.length;
+  quiz.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='q';
+    let opts=item.o.map((o,j)=>`<button class="opt" data-q="${i}" data-o="${j}">${o}</button>`).join('');
+    div.innerHTML=`<p class="qt">Q${i+1}. ${item.q}</p>${opts}<div class="exp" id="exp${i}">💡 ${item.e}</div>`;
+    qC.appendChild(div);
+  });
+  qC.querySelectorAll('.opt').forEach(btn=>{
+    btn.onclick=()=>{
+      const qi=+btn.dataset.q, oi=+btn.dataset.o;
+      if(answered.has(qi))return;
+      answered.add(qi);
+      const correct=quiz[qi].a;
+      qC.querySelectorAll(`.opt[data-q="${qi}"]`).forEach(b=>{
+        if(+b.dataset.o===correct)b.classList.add('correct');
+        b.disabled=true;
+      });
+      if(oi!==correct)btn.classList.add('wrong');
+      document.getElementById('exp'+qi).classList.add('show');
+      updateScore();
+    };
+  });
+  updateScore();
+}
+function updateScore(){
+  let s=0;
+  answered.forEach(qi=>{
+    const sel=qC.querySelector(`.opt[data-q="${qi}"].correct`);
+    const wrong=qC.querySelector(`.opt[data-q="${qi}"].wrong`);
+    if(sel&&!wrong) s++;
+  });
+  document.getElementById('score').textContent=s;
+  const pct=Math.round(answered.size?s/quiz.length*100:0);
+  document.getElementById('pct').textContent=pct+'%';
+  document.getElementById('qbar').style.width=(answered.size/quiz.length*100)+'%';
+}
+function resetQuiz(){renderQuiz();}
+renderQuiz();
+</script>
+</body>
+</html>
